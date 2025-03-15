@@ -1,0 +1,40 @@
+{
+  "name": "nodejs-be",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TRINHNAMTRUNG/Nodejs-BE-Thread.git"
+  },
+  "keywords": [
+    "Nodejs"
+  ],
+  "author": "TRINH NAM TRUNG",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TRINHNAMTRUNG/Nodejs-BE-Thread/issues"
+  },
+  "homepage": "https://github.com/TRINHNAMTRUNG/Nodejs-BE-Thread#readme",
+  "description": "",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.13.8",
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "api-query-params": "^5.4.0",
+    "axios": "^1.7.9",
+    "class-transformer": "^0.5.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "joi": "^17.13.3",
+    "lodash": "^4.17.21",
+    "mongoose": "^8.10.1",
+    "mongoose-delete": "^1.0.2",
+    "reflect-metadata": "^0.2.2"
+  }
+}
