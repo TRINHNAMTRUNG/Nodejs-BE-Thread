@@ -16,28 +16,41 @@ interface Poll {
     poll_options: PollOption[];
 }
 
-//REQUEST CREATE POST
+export interface NewFile {
+    buffer: Buffer,
+    contentType: string,
+    fileName: string
+};
+export interface Urls {
+    key: string;
+    url: string
+};
+
+//REQUEST POST
 export interface createPostReq {
     creator_id: Schema.Types.ObjectId;
-    reply_to: Schema.Types.ObjectId;
+    // reply_to: Schema.Types.ObjectId;
     content: string;
     visibility: string;
-    reply_count: number;
-    like_count: number;
-    comment_count: number;
-    save_post_count: number;
-    images?: string[];
-    user_tags?: UserTag[];
+    // reply_count: number;
+    // like_count: number;
+    // comment_count: number;
+    // save_post_count: number;
     hashtags?: string[];
-    poll?: Poll;
-    createdAt: Date;
+    user_tags: UserTag[];
 }
+
+export interface createPollReq extends createPostReq {
+    poll: Poll
+}
+
 
 export interface updatePostReq {
     content?: string;
     visibility?: string;
-    images?: string[];
-    user_tags?: UserTag[];
-    hashtags?: string[];
-    poll?: Poll;
+    noUpdateKeys: string[];
+    deleteKeys: string[];
+    user_tags: UserTag[];
+    hashtags: string[];
 }
+

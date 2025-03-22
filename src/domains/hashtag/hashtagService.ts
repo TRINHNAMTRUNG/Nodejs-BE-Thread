@@ -1,11 +1,6 @@
 
 import HashtagModel from "./hashtagModel";
 
-interface Hashtag {
-    name: string;
-    post_count: number;
-}
-
 export const findOrCreateHashtags = async (hashtagNames: string[]) => {
     if (hashtagNames.length == 0) return;
     const bulkOps = hashtagNames.map(name => {
@@ -21,7 +16,7 @@ export const findOrCreateHashtags = async (hashtagNames: string[]) => {
     await HashtagModel.bulkWrite(bulkOps);
 }
 
-export const getTrendingHashtags = async (limit: number = 10, query: string | null = null): Promise<Hashtag[]> => {
+export const getTrendingHashtags = async (limit: number = 5, query: string) => {
     let filter = {};
     if (query) {
         filter = { name: { $regex: query, $options: "i" } }; // Tìm kiếm không phân biệt hoa thường

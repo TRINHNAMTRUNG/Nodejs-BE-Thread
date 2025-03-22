@@ -1,18 +1,24 @@
 
-import { string } from "joi";
 import mongoose, { Schema, model } from "mongoose";
 
 const PostSchema = new Schema(
     {
         creator_id: { type: Schema.Types.ObjectId, required: true, ref: "User" },
-        reply_to: { type: Schema.Types.ObjectId, ref: "User" },
+        // reply_to: { type: Schema.Types.ObjectId, ref: "User" },
         content: { type: String, required: true },
         visibility: { type: String, enum: ["public", "private", "friends"], default: "public" },
-        reply_count: { type: Number, default: 0 },
+        // reply_count: { type: Number, default: 0 },
         like_count: { type: Number, default: 0 },
         comment_count: { type: Number, default: 0 },
         save_post_count: { type: Number, default: 0 },
-        images: { type: [String], minLength: 1 },
+        urls: {
+            type: [
+                {
+                    key: { type: String, required: true },
+                    url: { type: String, required: true },
+                }
+            ], minLength: 1
+        },
         user_tags: {
             type: [
                 {

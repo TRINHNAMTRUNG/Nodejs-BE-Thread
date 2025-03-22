@@ -32,6 +32,12 @@ class PollDTO {
     poll_options!: PollOptionDTO[];
 }
 
+class Urls {
+    @Expose()
+    key!: string;
+    @Expose()
+    url!: string
+}
 export class PostDTO {
     @Expose()
     id!: Schema.Types.ObjectId;
@@ -39,8 +45,8 @@ export class PostDTO {
     @Expose()
     creator_id!: Schema.Types.ObjectId;
 
-    @Expose()
-    reply_to?: Schema.Types.ObjectId;
+    // @Expose()
+    // reply_to?: Schema.Types.ObjectId;
 
     @Expose()
     content!: string;
@@ -61,7 +67,7 @@ export class PostDTO {
     save_post_count!: number;
 
     @Expose()
-    images?: string[];
+    urls?: Urls[];
 
     @Expose()
     @Type(() => UserTagDTO)
@@ -71,9 +77,11 @@ export class PostDTO {
     hashtags?: string[];
 
     @Expose()
-    @Type(() => PollDTO)
-    poll?: PollDTO;
-
-    @Expose()
     createdAt!: Date;
+}
+
+export class CreatPollDTO extends PostDTO {
+    @Expose()
+    @Type(() => PollDTO)
+    poll!: PollDTO;
 }

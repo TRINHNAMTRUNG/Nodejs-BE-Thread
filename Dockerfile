@@ -4,4 +4,4 @@ COPY package.json /app/
 RUN npm install
 COPY . /app/
 EXPOSE 8088
-CMD [ "node", "index.js" ]
+CMD [ "node", "app.js" ]
