@@ -16,8 +16,9 @@ const PostSchema = new Schema(
                 {
                     key: { type: String, required: true },
                     url: { type: String, required: true },
+                    _id: false
                 }
-            ], minLength: 1
+            ], minLength: 1, default: []
         },
         user_tags: {
             type: [
@@ -25,9 +26,9 @@ const PostSchema = new Schema(
                     id: { type: Schema.Types.ObjectId, required: true },
                     name: { type: String, required: true },
                 }
-            ], minLength: 1
+            ], minLength: 1, default: []
         }, // Danh sách id user
-        hashtags: { type: [String], minLength: 1 },
+        hashtags: { type: [String], minLength: 1, default: [] },
         poll: {
             type: {
                 end_at: { type: Date, required: true },
@@ -37,7 +38,8 @@ const PostSchema = new Schema(
                         {
                             content: { type: String, required: true }, // Nội dung của option
                             vote_count: { type: Number, default: 0 }, // Số lượng vote
-                            voters: { type: [Schema.Types.ObjectId], default: [] } // Danh sách ID user đã vote
+                            voters: { type: [Schema.Types.ObjectId], default: [] }, // Danh sách ID user đã vote
+                            _id: false
                         }
                     ],
                     minLength: 2,

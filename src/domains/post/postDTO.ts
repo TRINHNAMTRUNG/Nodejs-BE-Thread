@@ -1,7 +1,7 @@
-import { Expose, Type } from "class-transformer";
+import { Expose, Transform, Type } from "class-transformer";
 import { Schema } from "mongoose";
 
-class UserTagDTO {
+class UserTag {
     @Expose()
     id!: Schema.Types.ObjectId;
 
@@ -9,7 +9,7 @@ class UserTagDTO {
     name!: string;
 }
 
-class PollOptionDTO {
+class PollOption {
     @Expose()
     content!: string;
 
@@ -20,7 +20,7 @@ class PollOptionDTO {
     voters!: Schema.Types.ObjectId[];
 }
 
-class PollDTO {
+class Poll {
     @Expose()
     end_at!: Date;
 
@@ -28,8 +28,8 @@ class PollDTO {
     status_poll!: string;
 
     @Expose()
-    @Type(() => PollOptionDTO)
-    poll_options!: PollOptionDTO[];
+    @Type(() => PollOption)
+    poll_options!: PollOption[];
 }
 
 class Urls {
@@ -40,22 +40,18 @@ class Urls {
 }
 export class PostDTO {
     @Expose()
-    id!: Schema.Types.ObjectId;
+    @Transform(params => params.obj._id)
+    _id!: Schema.Types.ObjectId;
 
     @Expose()
+    @Transform(params => params.obj.creator_id)
     creator_id!: Schema.Types.ObjectId;
-
-    // @Expose()
-    // reply_to?: Schema.Types.ObjectId;
 
     @Expose()
     content!: string;
 
     @Expose()
     visibility!: string;
-
-    @Expose()
-    reply_count!: number;
 
     @Expose()
     like_count!: number;
@@ -67,21 +63,24 @@ export class PostDTO {
     save_post_count!: number;
 
     @Expose()
-    urls?: Urls[];
+    @Transform(({ value }) => value ?? [])
+    urls!: Urls[];
 
     @Expose()
-    @Type(() => UserTagDTO)
-    user_tags?: UserTagDTO[];
+    @Type(() => UserTag)
+    @Transform(({ value }) => value ?? [])
+    user_tags!: UserTag[];
 
     @Expose()
-    hashtags?: string[];
+    @Transform(({ value }) => value ?? [])
+    hashtags!: string[];
 
     @Expose()
     createdAt!: Date;
 }
 
-export class CreatPollDTO extends PostDTO {
+export class PollDTO extends PostDTO {
     @Expose()
-    @Type(() => PollDTO)
-    poll!: PollDTO;
+    @Type(() => Poll)
+    poll!: Poll;
 }

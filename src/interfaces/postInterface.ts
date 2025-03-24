@@ -29,21 +29,11 @@ export interface Urls {
 //REQUEST POST
 export interface createPostReq {
     creator_id: Schema.Types.ObjectId;
-    // reply_to: Schema.Types.ObjectId;
     content: string;
     visibility: string;
-    // reply_count: number;
-    // like_count: number;
-    // comment_count: number;
-    // save_post_count: number;
-    hashtags?: string[];
+    hashtags: string[];
     user_tags: UserTag[];
 }
-
-export interface createPollReq extends createPostReq {
-    poll: Poll
-}
-
 
 export interface updatePostReq {
     content?: string;
@@ -53,4 +43,12 @@ export interface updatePostReq {
     user_tags: UserTag[];
     hashtags: string[];
 }
+
+export interface createPollReq extends createPostReq {
+    poll: Poll
+}
+
+export interface updatePollReq extends Omit<updatePostReq, "deleteKeys" | "noUpdateKeys"> { }
+
+
 
