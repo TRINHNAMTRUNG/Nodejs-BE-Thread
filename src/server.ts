@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import express from "express";
 import dotenv from "dotenv";
-import routes from "./src/routes/index";
+import routes from "./routes/index";
 import { Request, Response } from "express";
 // import cors from "cors";
 dotenv.config();

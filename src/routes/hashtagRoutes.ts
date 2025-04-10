@@ -1,7 +1,7 @@
 import express from "express";
-import * as hashtagController from "../domains/hashtag/hashtagController";
+import * as hashtagController from "../domains/hashtags/hashtagController";
 import { validateQueryParams } from "../middlewares/validation"
-import { recommendHashtagSchema } from "../domains/hashtag/hashtagValidation";
+import { recommendHashtagSchema } from "../domains/hashtags/hashtagValidation";
 const router = express.Router();
 
 router.get("/", validateQueryParams(recommendHashtagSchema), hashtagController.recommendHashtag);

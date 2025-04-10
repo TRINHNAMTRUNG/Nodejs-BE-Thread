@@ -1,5 +1,5 @@
 
-import connection from "./src/configs/database";
+import connection from "./configs/database";
 import app from "./server";
 const HOST_NAME = process.env.HOST_NAME;
 const PORT = process.env.PORT || 8087;

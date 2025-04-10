@@ -1,7 +1,9 @@
-export interface ResponseT<T> {
-    data: T;
+import { ErrorCode } from "../constants/errorCodes";
+export interface ResponseT<DataType, ErrorDetailType> {
+    data: DataType;
     statusCode: number;
     success: boolean;
-    error?: string | string[];
     message: string
+    errorCode?: ErrorCode,
+    details?: ErrorDetailType | null;
 }

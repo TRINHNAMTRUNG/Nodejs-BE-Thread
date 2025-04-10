@@ -3,6 +3,7 @@ import { Schema } from "mongoose";
 
 class UserTag {
     @Expose()
+    @Transform(params => params.obj.id)
     id!: Schema.Types.ObjectId;
 
     @Expose()
@@ -38,6 +39,8 @@ class Urls {
     @Expose()
     url!: string
 }
+
+//RESPONSES POST
 export class PostDTO {
     @Expose()
     @Transform(params => params.obj._id)
@@ -78,9 +81,15 @@ export class PostDTO {
     @Expose()
     createdAt!: Date;
 }
-
+//RESPONSES POLL
 export class PollDTO extends PostDTO {
     @Expose()
     @Type(() => Poll)
     poll!: Poll;
+}
+//RESPONSES QUOTE POST
+export class QuotePostDTO extends PostDTO {
+    @Expose()
+    @Transform(params => params.obj.quoted_post_id)
+    quoted_post_id!: Schema.Types.ObjectId;
 }

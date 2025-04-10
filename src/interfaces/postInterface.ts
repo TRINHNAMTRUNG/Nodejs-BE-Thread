@@ -1,13 +1,13 @@
 import { Schema } from "mongoose";
 interface UserTag {
-    id: Schema.Types.ObjectId;
+    id: string;
     name: string;
 }
 
 interface PollOption {
     content: string;
     vote_count: number;
-    voters: Schema.Types.ObjectId[];
+    voters: string[];
 }
 
 interface Poll {
@@ -28,13 +28,12 @@ export interface Urls {
 
 //REQUEST POST
 export interface createPostReq {
-    creator_id: Schema.Types.ObjectId;
+    creator_id: string;
     content: string;
     visibility: string;
     hashtags: string[];
     user_tags: UserTag[];
 }
-
 export interface updatePostReq {
     content?: string;
     visibility?: string;
@@ -44,11 +43,21 @@ export interface updatePostReq {
     hashtags: string[];
 }
 
+//REQUEST POLL
 export interface createPollReq extends createPostReq {
     poll: Poll
 }
+export interface updatePollReq extends Omit<updatePostReq, "deleteKeys" | "noUpdateKeys"> { };
+export interface voteAPollOptionReq {
+    poll_option_id: string;
+    user_id: string;
+}
 
-export interface updatePollReq extends Omit<updatePostReq, "deleteKeys" | "noUpdateKeys"> { }
+//REQUEST QUOTE POST
+export interface createQuotePostReq extends createPostReq {
+    quoted_post_id: string;
+}
+export interface updateQuotePostReq extends Omit<updatePostReq, "deleteKeys" | "noUpdateKeys"> { }
 
 
 
