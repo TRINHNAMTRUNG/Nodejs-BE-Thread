@@ -39,17 +39,17 @@ router.post("/quotes",
 router.patch("normal/:id",
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdatePostRequestDTO),
-    postController.generalUpdatePostCtrl
+    postController.updatePostCtrl
 );
 router.patch("polls/:id",
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdateQuoteAndPollPostRequestDTO),
-    postController.generalUpdatePostCtrl
+    postController.updatePollCtrl
 );
 router.patch("quotes/:id",
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdateQuoteAndPollPostRequestDTO),
-    postController.generalUpdatePostCtrl
+    postController.updateQuotePostCtrl
 );
 // Delete Post
 router.delete("/:id",

@@ -7,30 +7,30 @@ import { plainToInstance } from "class-transformer";
 import { ErrorCode } from "../../constants/errorCodes";
 //POST CONTROLLERS
 
-export const generalCreatePostCtrl = async (req: Request, res: Response) => {
-    const { type, ...mainData } = req.body;
-    req.body = mainData;
-    switch (type) {
-        case "normal":
-            return createPostCtrl(req, res);
-        case "poll":
-            return createPollCtrl(req, res);
-        case "quote":
-            return createQuotePostCtrl(req, res);
-    }
-}
-export const generalUpdatePostCtrl = async (req: Request<{ id: string }>, res: Response) => {
-    const { type, ...mainData } = req.body;
-    req.body = mainData;
-    switch (type) {
-        case "normal":
-            return updatePostCtrl(req, res);
-        case "poll":
-            return updatePollCtrl(req, res);
-        case "quote":
-            return updateQuotePostCtrl(req, res);
-    }
-}
+// export const generalCreatePostCtrl = async (req: Request, res: Response) => {
+//     const { type, ...mainData } = req.body;
+//     req.body = mainData;
+//     switch (type) {
+//         case "normal":
+//             return createPostCtrl(req, res);
+//         case "poll":
+//             return createPollCtrl(req, res);
+//         case "quote":
+//             return createQuotePostCtrl(req, res);
+//     }
+// }
+// export const generalUpdatePostCtrl = async (req: Request<{ id: string }>, res: Response) => {
+//     const { type, ...mainData } = req.body;
+//     req.body = mainData;
+//     switch (type) {
+//         case "normal":
+//             return updatePostCtrl(req, res);
+//         case "poll":
+//             return updatePollCtrl(req, res);
+//         case "quote":
+//             return updateQuotePostCtrl(req, res);
+//     }
+// }
 
 export const createPostCtrl = async (req: Request, res: Response) => {
     try {
