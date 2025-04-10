@@ -45,7 +45,7 @@ export const createPostCtrl = async (req: Request, res: Response) => {
     }
 };
 
-export const updatePostCtrl = async (req: Request<{ id: string }, {}, updatePostReq>, res: Response) => {
+export const updatePostCtrl = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const defaultFields = {
@@ -68,7 +68,7 @@ export const updatePostCtrl = async (req: Request<{ id: string }, {}, updatePost
     }
 };
 
-export const deletePostCtrl = async (req: Request<{ id: string }>, res: Response) => {
+export const deletePostCtrl = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const fileKeys = await postService.getFileKeys(id);
@@ -85,7 +85,7 @@ export const deletePostCtrl = async (req: Request<{ id: string }>, res: Response
 };
 
 //POLL CONTROLLERS
-export const createPollCtrl = async (req: Request<{}, {}, createPollReq>, res: Response) => {
+export const createPollCtrl = async (req: Request, res: Response) => {
     try {
         const poll = req.body;
         const newPoll = await postService.createPoll(poll);
@@ -97,7 +97,7 @@ export const createPollCtrl = async (req: Request<{}, {}, createPollReq>, res: R
     }
 };
 
-export const updatePollCtrl = async (req: Request<{ id: string }, {}, updatePollReq>, res: Response) => {
+export const updatePollCtrl = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const defaultFields = {
@@ -116,7 +116,7 @@ export const updatePollCtrl = async (req: Request<{ id: string }, {}, updatePoll
 };
 
 //QUOTE POST CONTROLLERS
-export const createQuotePostCtrl = async (req: Request<{}, {}, createQuotePostReq>, res: Response) => {
+export const createQuotePostCtrl = async (req: Request, res: Response) => {
     try {
         const quotePost = req.body;
         const newQuotePost = await postService.createQuotePost(quotePost);
@@ -128,7 +128,7 @@ export const createQuotePostCtrl = async (req: Request<{}, {}, createQuotePostRe
     }
 }
 
-export const updateQuotePostCtrl = async (req: Request<{ id: string }, {}, updateQuotePostReq>, res: Response) => {
+export const updateQuotePostCtrl = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const defaultFields = {
@@ -149,7 +149,7 @@ export const updateQuotePostCtrl = async (req: Request<{ id: string }, {}, updat
 
 
 //GET CONTROLLERS
-export const getPostByIdUserCtrl = async (req: Request<{ id: string }>, res: Response) => {
+export const getPostByIdUserCtrl = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
