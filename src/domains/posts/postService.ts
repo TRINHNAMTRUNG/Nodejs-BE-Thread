@@ -142,9 +142,10 @@ export const updatePoll = async (postId: string, data: updatePollReq) => {
 export const createQuotePost = async (data: createQuotePostReq) => {
     try {
         const { hashtags } = data;
-        hashtags.length && await hashtagService.findOrCreateHashtags(hashtags);
+        const hashtagTask = hashtags !== undefined && hashtags.length > 0 ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
+        const createPostTask = PostModel.create({ ...data, type: TypePost.QOUTE });
+        const [_, newPost] = await Promise.all([hashtagTask, createPostTask]);
 
-        const newPost = await PostModel.create(data);
         return newPost.toObject();
     } catch (error) {
         console.error("Error creating quote post:", error);

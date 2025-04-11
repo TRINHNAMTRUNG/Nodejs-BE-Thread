@@ -31,7 +31,7 @@ router.post("/polls",
     validateBodyDto(CreatePollRequestDTO),
     postController.createPollCtrl
 );
-router.post("/quotes",
+router.post("/qoutes",
     validateBodyDto(CreateQuotePostRequestDTO),
     postController.createQuotePostCtrl
 );
