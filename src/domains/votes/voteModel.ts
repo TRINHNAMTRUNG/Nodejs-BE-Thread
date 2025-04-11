@@ -2,7 +2,7 @@
 import { Schema, model } from "mongoose";
 
 const VoteSchema = new Schema({
-    post_Id: {
+    post_id: {
         type: Schema.Types.ObjectId,
         required: true,
         ref: "Post"

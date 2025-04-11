@@ -57,18 +57,18 @@ router.delete("/:id",
     validateParamDto(IdQueryRequestDTO),
     postController.deletePostCtrl
 );
-// Vote Post
+// Vote Post or Unvote Post
 router.post("/:id/votes",
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(VoteAPost),
     voteController.voteAPostCtrl
 );
 // Unvote Post
-router.delete("/:id/votes",
-    validateParamDto(IdQueryRequestDTO),
-    validateBodyDto(VoteAPost),
-    voteController.voteAPostCtrl
-);
+// router.delete("/:id/votes",
+//     validateParamDto(IdQueryRequestDTO),
+//     validateBodyDto(VoteAPost),
+//     voteController.voteAPostCtrl
+// );
 // Vote A Poll Option
 router.post("/:id/polls/votes",
     validateParamDto(IdQueryRequestDTO),

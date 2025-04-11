@@ -19,6 +19,9 @@ class PollOption {
 
     @Expose()
     voters!: Schema.Types.ObjectId[];
+
+    @Expose()
+    _id!: string
 }
 
 class Poll {

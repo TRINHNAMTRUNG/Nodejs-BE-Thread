@@ -5,7 +5,7 @@ import { AppError } from "../../utils/responseFomat";
 
 export const voteAPostService = async (postId: string, userId: string) => {
     const session = await mongoose.startSession();
-    session.startTransaction();
+
     try {
         // Tìm post
         const post = await PostModel.findById(postId);
@@ -18,7 +18,7 @@ export const voteAPostService = async (postId: string, userId: string) => {
             post_id: postId,
             user_id: userId
         });
-
+        session.startTransaction();
         if (existingVote) {
             // Nếu đã vote rồi thì thực hiện unvote
             const updateLikeCountTask = PostModel.updateOne(
