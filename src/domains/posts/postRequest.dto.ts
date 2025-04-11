@@ -203,11 +203,6 @@ export class VotePollOptionRequestDTO {
 
     @Expose()
     @IsString()
-    @Length(24, 24, { message: 'post_id must be exactly 24 characters' })
-    post_id!: string;
-
-    @Expose()
-    @IsString()
     @Length(24, 24, { message: 'user_id must be exactly 24 characters' })
     user_id!: string;
 }

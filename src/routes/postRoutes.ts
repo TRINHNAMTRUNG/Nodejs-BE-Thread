@@ -69,6 +69,7 @@ router.post("/:id/votes",
 //     validateBodyDto(VoteAPost),
 //     voteController.voteAPostCtrl
 // );
+
 // Vote A Poll Option
 router.post("/:id/polls/votes",
     validateParamDto(IdQueryRequestDTO),

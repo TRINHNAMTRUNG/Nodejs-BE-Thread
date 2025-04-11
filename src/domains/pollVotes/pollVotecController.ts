@@ -7,8 +7,9 @@ import { PollVoteDTO } from './pollVoteDTO';
 import { plainToInstance } from 'class-transformer';
 import { voteAPollOptionReq } from '../../interfaces';
 import { ErrorCode } from "../../constants/errorCodes";
+import { VotePollOptionRequestDTO } from '../posts/postRequest.dto';
 
-export const voteAPollOptionCtrl = async (req: Request<{ id: string }, {}, voteAPollOptionReq>, res: Response) => {
+export const voteAPollOptionCtrl = async (req: Request<{ id: string }, {}, VotePollOptionRequestDTO>, res: Response) => {
     try {
         const { id } = req.params;
         const voteData = req.body;
