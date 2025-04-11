@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import Joi, { ObjectSchema } from "joi";
 import { ValidationError, validate } from "class-validator";
 import { plainToClass } from "class-transformer";
 import { responseFomat } from "../utils/responseFomat";
@@ -44,6 +43,7 @@ const coreValidateAny = (DtoClass: new () => any, typeValidate: TypeValidate) =>
             }
 
             const dtoInstance = plainToClass(DtoClass, dataSource);
+            console.log("LOGS VALIDATE: ", dtoInstance)
             const errorsValidate = await validate(dtoInstance);
 
             if (errorsValidate.length > 0) {
@@ -51,7 +51,7 @@ const coreValidateAny = (DtoClass: new () => any, typeValidate: TypeValidate) =>
                     acc[error.property] = Object.values(error.constraints || {});
                     return acc;
                 }, {} as Record<string, string[]>);
-                responseFomat(
+                return responseFomat(
                     res,
                     null,
                     "Validation failed",
@@ -79,7 +79,7 @@ const coreValidateAny = (DtoClass: new () => any, typeValidate: TypeValidate) =>
 
             const isDev = process.env.NODE_ENV === 'development';
             const message = error instanceof Error ? error.message : 'Unknown error';
-            responseFomat(
+            return responseFomat(
                 res,
                 null,
                 "An error occurred while validating request",

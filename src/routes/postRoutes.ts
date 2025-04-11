@@ -22,7 +22,7 @@ const upload = multer();
 
 //Post routes
 // Create Normal - Poll - Quote Post
-router.post("/normal",
+router.post("/normals",
     upload.array("files"),
     validateBodyDto(CreatePostRequestDTO),
     postController.createPostCtrl
@@ -36,7 +36,8 @@ router.post("/quotes",
     postController.createQuotePostCtrl
 );
 // Update Normal - Poll - Quote Post
-router.patch("normal/:id",
+router.patch("normals/:id",
+    upload.array("files"),
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdatePostRequestDTO),
     postController.updatePostCtrl

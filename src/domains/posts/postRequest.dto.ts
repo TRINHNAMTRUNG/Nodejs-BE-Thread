@@ -1,4 +1,4 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import {
     IsString,
     MinLength,
@@ -78,6 +78,7 @@ class UrlsRequest {
 
 // Request DTO cho Post
 export class CreatePostRequestDTO {
+
     @Expose()
     @IsString()
     @Length(24, 24, { message: 'creator_id must be exactly 24 characters' })
@@ -90,6 +91,8 @@ export class CreatePostRequestDTO {
 
     @Expose()
     @IsEnum(Visibility, { message: "visibility must be 'public', 'private', or 'friends'" })
+    @IsOptional()
+    @Transform(({ value }) => (value === undefined ? Visibility.PUBLIC : value))
     visibility!: Visibility;
 
     @Expose()
@@ -98,14 +101,16 @@ export class CreatePostRequestDTO {
     @ValidateNested({ each: true })
     @Type(() => UserTagRequest)
     @IsOptional()
-    user_tags?: UserTagRequest[];
+    // @Transform(({ value }) => value === undefined ? [] : value)
+    user_tags!: UserTagRequest[];
 
     @Expose()
     @IsArray()
     @ArrayMinSize(1, { message: 'Hashtags must contain at least one tag' })
     @IsString({ each: true, message: 'Each hashtag must be a string' })
     @IsOptional()
-    hashtags?: string[];
+    // @Transform(({ value }) => value === undefined ! [] : value)
+    hashtags!: string[];
 }
 
 // Request DTO cho Poll

@@ -4,6 +4,8 @@ import { createPostReq, updatePostReq, Urls, NewFile, createPollReq, updatePollR
 import * as hashtagService from "../hashtags/hashtagService";
 import { deleteManyObjectS3, pushManyObjectS3 } from "../../utils/s3FileManager";
 import { AppError } from "../../utils/responseFomat";
+import { CreatePostRequestDTO } from "./postRequest.dto";
+import { TypePost } from "../../constants/postEnum";
 
 const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Promise<Urls[]> => {
     if (!files || files.length === 0) {
@@ -20,13 +22,15 @@ const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Pr
 };
 
 // POST SERVICES
-export const createPost = async (data: createPostReq, files: Express.Multer.File[] | undefined) => {
+export const createPost = async (post: CreatePostRequestDTO, files: Express.Multer.File[] | undefined) => {
     try {
-        const hashtagTask = data.hashtags.length ? hashtagService.findOrCreateHashtags(data.hashtags) : Promise.resolve();
+        console.log("LOGS SVC: ", post);
+        const { hashtags } = post;
+        const hashtagTask = hashtags !== undefined && hashtags?.length > 0 ? hashtagService.findOrCreateHashtags(post.hashtags) : Promise.resolve();
         const filesTask = files ? pushManyObjectS3Svc(files) : Promise.resolve([]);
         const [_, newUrls] = await Promise.all([hashtagTask, filesTask]);
 
-        const newData = { ...data, urls: newUrls };
+        const newData = { ...post, urls: newUrls, type: TypePost.NORMAL };
         const newPost = await PostModel.create(newData);
         return newPost.toObject();
     } catch (error) {

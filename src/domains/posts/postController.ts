@@ -5,6 +5,7 @@ import { createPollReq, createPostReq, createQuotePostReq, updatePollReq, update
 import { PollDTO, PostDTO, QuotePostDTO } from "./postDTO";
 import { plainToInstance } from "class-transformer";
 import { ErrorCode } from "../../constants/errorCodes";
+import { CreatePostRequestDTO } from "./postRequest.dto";
 //POST CONTROLLERS
 
 // export const generalCreatePostCtrl = async (req: Request, res: Response) => {
@@ -32,9 +33,10 @@ import { ErrorCode } from "../../constants/errorCodes";
 //     }
 // }
 
-export const createPostCtrl = async (req: Request, res: Response) => {
+export const createPostCtrl = async (req: Request<{}, {}, CreatePostRequestDTO>, res: Response) => {
     try {
         const post = req.body;
+
         const files = Array.isArray(req?.files) ? req.files : undefined;
         const newPost = await postService.createPost(post, files);
 
