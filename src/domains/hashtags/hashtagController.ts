@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import { responseFomat } from "../../utils/responseFomat";
+import { handleError, responseFomat } from "../../utils/responseFomat";
 import * as hashtagService from "./hashtagService";
 import { queryHashtagReq } from "../../interfaces/index";
 import { plainToInstance } from "class-transformer";
 import { HashtagRes } from "./hashtagDTO";
+import { ErrorCode } from "../../constants/errorCodes";
 
 export const recommendHashtag = async (req: Request<{}, any, any, queryHashtagReq>, res: Response) => {
     try {
@@ -14,13 +15,6 @@ export const recommendHashtag = async (req: Request<{}, any, any, queryHashtagRe
 
         return responseFomat(res, hashtagsDto, "Hashtag recommend successfully");
     } catch (error: any) {
-        return responseFomat(
-            res,
-            null,
-            "Error recommend hashtag",
-            false,
-            500,
-            error.message || "Unknown error"
-        );
+        handleError(error, res, "Error voting poll option", ErrorCode.INTERNAL_SERVER_ERROR);
     }
 }

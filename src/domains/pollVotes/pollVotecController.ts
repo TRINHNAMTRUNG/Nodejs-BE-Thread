@@ -6,6 +6,7 @@ import { AppError, responseFomat, handleError } from '../../utils/responseFomat'
 import { PollVoteDTO } from './pollVoteDTO';
 import { plainToInstance } from 'class-transformer';
 import { voteAPollOptionReq } from '../../interfaces';
+import { ErrorCode } from "../../constants/errorCodes";
 
 export const voteAPollOptionCtrl = async (req: Request<{ id: string }, {}, voteAPollOptionReq>, res: Response) => {
     try {
@@ -15,7 +16,7 @@ export const voteAPollOptionCtrl = async (req: Request<{ id: string }, {}, voteA
         const voteDto = plainToInstance(PollVoteDTO, vote, { excludeExtraneousValues: true });
         return responseFomat(res, voteDto, "Voted successfully");
     } catch (error: any) {
-        handleError(error, res, "Error voting poll option");
+        handleError(error, res, "Error voting poll option", ErrorCode.INTERNAL_SERVER_ERROR);
     }
 }
 
