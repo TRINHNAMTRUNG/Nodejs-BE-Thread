@@ -5,7 +5,7 @@ import { createPollReq, createPostReq, createQuotePostReq, updatePollReq, update
 import { PollDTO, PostDTO, QuotePostDTO } from "./postDTO";
 import { plainToInstance } from "class-transformer";
 import { ErrorCode } from "../../constants/errorCodes";
-import { CreatePostRequestDTO } from "./postRequest.dto";
+import { CreatePollRequestDTO, CreatePostRequestDTO, CreateQuotePostRequestDTO } from "./postRequest.dto";
 //POST CONTROLLERS
 
 // export const generalCreatePostCtrl = async (req: Request, res: Response) => {
@@ -87,7 +87,7 @@ export const deletePostCtrl = async (req: Request, res: Response) => {
 };
 
 //POLL CONTROLLERS
-export const createPollCtrl = async (req: Request, res: Response) => {
+export const createPollCtrl = async (req: Request<{}, {}, CreatePollRequestDTO>, res: Response) => {
     try {
         const poll = req.body;
         const newPoll = await postService.createPoll(poll);
@@ -118,7 +118,7 @@ export const updatePollCtrl = async (req: Request, res: Response) => {
 };
 
 //QUOTE POST CONTROLLERS
-export const createQuotePostCtrl = async (req: Request, res: Response) => {
+export const createQuotePostCtrl = async (req: Request<{}, {}, CreateQuotePostRequestDTO>, res: Response) => {
     try {
         const quotePost = req.body;
         const newQuotePost = await postService.createQuotePost(quotePost);

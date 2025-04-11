@@ -4,7 +4,7 @@ import { createPostReq, updatePostReq, Urls, NewFile, createPollReq, updatePollR
 import * as hashtagService from "../hashtags/hashtagService";
 import { deleteManyObjectS3, pushManyObjectS3 } from "../../utils/s3FileManager";
 import { AppError } from "../../utils/responseFomat";
-import { CreatePostRequestDTO } from "./postRequest.dto";
+import { CreatePollRequestDTO, CreatePostRequestDTO } from "./postRequest.dto";
 import { TypePost } from "../../constants/postEnum";
 
 const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Promise<Urls[]> => {
@@ -104,12 +104,14 @@ export const deletePost = async (postId: string, urlKeys: string[]): Promise<boo
 };
 
 //POLL SERVICES
-export const createPoll = async (data: createPollReq) => {
+export const createPoll = async (data: CreatePollRequestDTO) => {
     try {
         const { hashtags } = data;
-        hashtags.length && await hashtagService.findOrCreateHashtags(hashtags);
 
-        const newPost = await PostModel.create(data);
+        const hashtagTask = hashtags !== undefined && hashtags.length > 0 ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
+        const createPostTask = PostModel.create({ ...data, type: TypePost.POLL });
+        const [_, newPost] = await Promise.all([hashtagTask, createPostTask]);
+
         return newPost.toObject();
     } catch (error) {
         console.error("Error creating poll:", error);

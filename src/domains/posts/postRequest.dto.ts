@@ -13,6 +13,7 @@ import {
     IsDateString,
     ArrayMinSize,
     ArrayMaxSize,
+    IsObject,
 } from 'class-validator';
 import { Schema } from 'mongoose';
 
@@ -49,14 +50,6 @@ class PollOptionRequest {
 }
 
 class PollRequest {
-    @Expose()
-    @IsDateString({}, { message: 'end_at must be a valid ISO date string' })
-    end_at!: string; // ISO date string từ client
-
-    @Expose()
-    @IsEnum(StatusPoll, { message: "status_poll must be 'Closed' or 'Opening'" })
-    status_poll!: string;
-
     @Expose()
     @IsArray()
     @ArrayMinSize(2, { message: 'At least 2 options are required in the poll' })
@@ -117,6 +110,7 @@ export class CreatePostRequestDTO {
 export class CreatePollRequestDTO extends CreatePostRequestDTO {
     @Expose()
     @ValidateNested()
+    @IsObject({ message: 'Poll must be an object' })
     @Type(() => PollRequest)
     poll!: PollRequest;
 }

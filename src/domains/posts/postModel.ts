@@ -30,7 +30,7 @@ const PostSchema = new Schema(
         hashtags: { type: [String], minLength: 1, default: [] },
         poll: {
             type: {
-                end_at: { type: Date, required: true },
+                end_at: { type: Date, default: new Date(new Date().getTime() + 24 * 60 * 60 * 1000) },
                 status_poll: { type: String, enum: ["Closed", "Openning"], default: "Openning" },
                 poll_options: {
                     type: [
