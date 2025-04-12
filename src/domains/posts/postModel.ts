@@ -9,7 +9,7 @@ const PostSchema = new Schema(
         visibility: { type: String, enum: ["public", "private", "friends"], default: "public" },
         like_count: { type: Number, default: 0 },
         comment_count: { type: Number, default: 0 },
-        save_post_count: { type: Number, default: 0 },
+        qoute_post_count: { type: Number, default: 0 },
         urls: {
             type: [
                 {

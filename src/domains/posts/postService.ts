@@ -146,6 +146,8 @@ export const createQuotePost = async (data: createQuotePostReq) => {
         const createPostTask = PostModel.create({ ...data, type: TypePost.QOUTE });
         const [_, newPost] = await Promise.all([hashtagTask, createPostTask]);
 
+        // update qoute_post_count in main post
+        await PostModel.updateOne({ _id: newPost.quoted_post_id }, { $inc: { qoute_post_count: 1 } })
         return newPost.toObject();
     } catch (error) {
         console.error("Error creating quote post:", error);

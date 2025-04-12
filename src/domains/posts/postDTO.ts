@@ -66,7 +66,7 @@ export class PostDTO {
     comment_count!: number;
 
     @Expose()
-    save_post_count!: number;
+    qoute_post_count!: number;
 
     @Expose()
     @Transform(({ value }) => value ?? [])
