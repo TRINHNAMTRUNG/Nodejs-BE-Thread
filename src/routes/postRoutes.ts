@@ -31,23 +31,23 @@ router.post("/polls",
     validateBodyDto(CreatePollRequestDTO),
     postController.createPollCtrl
 );
-router.post("/qoutes",
+router.post("/quotes",
     validateBodyDto(CreateQuotePostRequestDTO),
     postController.createQuotePostCtrl
 );
 // Update Normal - Poll - Quote Post
-router.patch("normals/:id",
+router.patch("/normals/:id",
     upload.array("files"),
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdatePostRequestDTO),
     postController.updatePostCtrl
 );
-router.patch("polls/:id",
+router.patch("/polls/:id",
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdateQuoteAndPollPostRequestDTO),
     postController.updatePollCtrl
 );
-router.patch("quotes/:id",
+router.patch("/quotes/:id",
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdateQuoteAndPollPostRequestDTO),
     postController.updateQuotePostCtrl

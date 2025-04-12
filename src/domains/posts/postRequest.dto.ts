@@ -128,13 +128,12 @@ export class UpdatePostRequestDTO {
     @Expose()
     @IsString()
     @MinLength(3, { message: 'Post content must have at least 3 characters' })
-    @IsOptional()
-    content?: string;
+    content!: string;
 
     @Expose()
     @IsEnum(Visibility, { message: "visibility must be 'public', 'private', or 'friends'" })
     @IsOptional()
-    visibility?: Visibility;
+    visibility!: Visibility;
 
     @Expose()
     @IsArray()
@@ -142,28 +141,28 @@ export class UpdatePostRequestDTO {
     @ValidateNested({ each: true })
     @Type(() => UserTagRequest)
     @IsOptional()
-    user_tags?: UserTagRequest[];
+    user_tags!: UserTagRequest[];
 
     @Expose()
     @IsArray()
     @ArrayMinSize(1, { message: 'Hashtags must contain at least one tag' })
     @IsString({ each: true, message: 'Each hashtag must be a string' })
     @IsOptional()
-    hashtags?: string[];
+    hashtags!: string[];
 
     @Expose()
     @IsArray()
     @ArrayMinSize(1, { message: 'noUpdateKeys must contain at least one tag' })
     @IsString({ each: true, message: 'Each noUpdateKeys must be a string' })
     @IsOptional()
-    noUpdateKeys?: string[];
+    noUpdateKeys!: string[];
 
     @Expose()
     @IsArray()
     @ArrayMinSize(1, { message: 'deleteKeys must contain at least one tag' })
     @IsString({ each: true, message: 'Each deleteKeys must be a string' })
     @IsOptional()
-    deleteKeys?: string[];
+    deleteKeys!: string[];
 }
 // Request DTO cho Update Post
 export class UpdateQuoteAndPollPostRequestDTO {
@@ -171,12 +170,12 @@ export class UpdateQuoteAndPollPostRequestDTO {
     @IsString()
     @MinLength(3, { message: 'Post content must have at least 3 characters' })
     @IsOptional()
-    content?: string;
+    content!: string;
 
     @Expose()
     @IsEnum(Visibility, { message: "visibility must be 'public', 'private', or 'friends'" })
     @IsOptional()
-    visibility?: Visibility;
+    visibility!: Visibility;
 
     @Expose()
     @IsArray()
@@ -184,14 +183,14 @@ export class UpdateQuoteAndPollPostRequestDTO {
     @ValidateNested({ each: true })
     @Type(() => UserTagRequest)
     @IsOptional()
-    user_tags?: UserTagRequest[];
+    user_tags!: UserTagRequest[];
 
     @Expose()
     @IsArray()
     @ArrayMinSize(1, { message: 'Hashtags must contain at least one tag' })
     @IsString({ each: true, message: 'Each hashtag must be a string' })
     @IsOptional()
-    hashtags?: string[];
+    hashtags!: string[];
 }
 
 // Request DTO cho Vote Poll Option

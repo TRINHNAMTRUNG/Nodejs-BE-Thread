@@ -4,7 +4,7 @@ import { createPostReq, updatePostReq, Urls, NewFile, createPollReq, updatePollR
 import * as hashtagService from "../hashtags/hashtagService";
 import { deleteManyObjectS3, pushManyObjectS3 } from "../../utils/s3FileManager";
 import { AppError } from "../../utils/responseFomat";
-import { CreatePollRequestDTO, CreatePostRequestDTO } from "./postRequest.dto";
+import { CreatePollRequestDTO, CreatePostRequestDTO, UpdatePostRequestDTO, UpdateQuoteAndPollPostRequestDTO } from "./postRequest.dto";
 import { TypePost } from "../../constants/postEnum";
 
 const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Promise<Urls[]> => {
@@ -25,8 +25,8 @@ const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Pr
 export const createPost = async (post: CreatePostRequestDTO, files: Express.Multer.File[] | undefined) => {
     try {
         console.log("LOGS SVC: ", post);
-        const { hashtags } = post;
-        const hashtagTask = hashtags !== undefined && hashtags?.length > 0 ? hashtagService.findOrCreateHashtags(post.hashtags) : Promise.resolve();
+        const { hashtags = [] } = post;
+        const hashtagTask = hashtags?.length > 0 ? hashtagService.findOrCreateHashtags(post.hashtags) : Promise.resolve();
         const filesTask = files ? pushManyObjectS3Svc(files) : Promise.resolve([]);
         const [_, newUrls] = await Promise.all([hashtagTask, filesTask]);
 
@@ -39,13 +39,17 @@ export const createPost = async (post: CreatePostRequestDTO, files: Express.Mult
     }
 };
 
-export const updatePost = async (postId: string, data: updatePostReq, files: Express.Multer.File[] | undefined) => {
+export const updatePost = async (postId: string, data: UpdatePostRequestDTO, files: Express.Multer.File[] | undefined) => {
     try {
-        const { hashtags, deleteKeys, noUpdateKeys } = data;
+        const { hashtags = [], deleteKeys = [], noUpdateKeys = [] } = data;
+        const isEmptyUpdate = Object.values(data).every(value => value === undefined);
+        if (isEmptyUpdate) {
+            throw new AppError("At least one field must be updated", 400);
+        }
         // 1. Get the existing post to verify it exists
-        const existingPost = await PostModel.findById(postId);
+        const existingPost = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.POLL });
         if (!existingPost) {
-            throw new AppError("Post not found", 404);
+            throw new AppError("Normal post not found", 404);
         }
         // 2. Validate keys in deleteKeys and noUpdateKeys
         const existingKeys = existingPost.urls.map(url => url.key);
@@ -106,9 +110,9 @@ export const deletePost = async (postId: string, urlKeys: string[]): Promise<boo
 //POLL SERVICES
 export const createPoll = async (data: CreatePollRequestDTO) => {
     try {
-        const { hashtags } = data;
+        const { hashtags = [] } = data;
 
-        const hashtagTask = hashtags !== undefined && hashtags.length > 0 ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
+        const hashtagTask = hashtags.length > 0 ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
         const createPostTask = PostModel.create({ ...data, type: TypePost.POLL });
         const [_, newPost] = await Promise.all([hashtagTask, createPostTask]);
 
@@ -119,17 +123,22 @@ export const createPoll = async (data: CreatePollRequestDTO) => {
     }
 };
 
-export const updatePoll = async (postId: string, data: updatePollReq) => {
+export const updatePoll = async (postId: string, data: UpdateQuoteAndPollPostRequestDTO) => {
     try {
-        const { hashtags } = data;
+        const { hashtags = [] } = data;
+        const isEmptyUpdate = Object.values(data).every(value => value === undefined);
+        if (isEmptyUpdate) {
+            throw new AppError("At least one field must be updated", 400);
+        }
+        const pollPostExisting = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.POLL });
+        if (!pollPostExisting) {
+            throw new AppError("Poll post not found", 404);
+        }
         const updatedPoll = await PostModel.findByIdAndUpdate(
             new mongoose.Types.ObjectId(postId),
             { $set: data },
             { new: true }
         );
-        if (!updatedPoll) {
-            throw new AppError("Poll not found", 404);
-        }
         hashtags.length && await hashtagService.findOrCreateHashtags(hashtags);
         return updatedPoll;
     } catch (error) {
@@ -143,11 +152,11 @@ export const createQuotePost = async (data: createQuotePostReq) => {
     try {
         const { hashtags } = data;
         const hashtagTask = hashtags !== undefined && hashtags.length > 0 ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
-        const createPostTask = PostModel.create({ ...data, type: TypePost.QOUTE });
+        const createPostTask = PostModel.create({ ...data, type: TypePost.QUOTE });
         const [_, newPost] = await Promise.all([hashtagTask, createPostTask]);
 
         // update qoute_post_count in main post
-        await PostModel.updateOne({ _id: newPost.quoted_post_id }, { $inc: { qoute_post_count: 1 } })
+        await PostModel.updateOne({ _id: newPost.quoted_post_id }, { $inc: { quote_post_count: 1 } })
         return newPost.toObject();
     } catch (error) {
         console.error("Error creating quote post:", error);
@@ -155,21 +164,27 @@ export const createQuotePost = async (data: createQuotePostReq) => {
     }
 }
 
-export const updateQuotePost = async (postId: string, data: updateQuotePostReq) => {
+export const updateQuotePost = async (postId: string, data: UpdateQuoteAndPollPostRequestDTO) => {
     try {
-        const { hashtags } = data;
+        const { hashtags = [] } = data;
         hashtags.length && await hashtagService.findOrCreateHashtags(hashtags);
+        const isEmptyUpdate = Object.values(data).every(value => value === undefined);
+        if (isEmptyUpdate) {
+            throw new AppError("At least one field must be updated", 400);
+        }
+        const quotePostExisting = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.QUOTE });
+        if (!quotePostExisting) {
+            throw new AppError("Quote post not found", 404);
+        }
         const updatedQuotePost = await PostModel.findByIdAndUpdate(
             new mongoose.Types.ObjectId(postId),
             { $set: data },
             { new: true }
         );
-        if (!updatedQuotePost) {
-            throw new AppError("Quote post not found", 404);
-        }
+        return updatedQuotePost;
     } catch (error) {
         console.error("Error updating quote post:", error);
-        return error;
+        throw error;
     }
 }
 

@@ -5,7 +5,7 @@ import { createPollReq, createPostReq, createQuotePostReq, updatePollReq, update
 import { PollDTO, PostDTO, QuotePostDTO } from "./postDTO";
 import { plainToInstance } from "class-transformer";
 import { ErrorCode } from "../../constants/errorCodes";
-import { CreatePollRequestDTO, CreatePostRequestDTO, CreateQuotePostRequestDTO } from "./postRequest.dto";
+import { CreatePollRequestDTO, CreatePostRequestDTO, CreateQuotePostRequestDTO, UpdatePostRequestDTO, UpdateQuoteAndPollPostRequestDTO } from "./postRequest.dto";
 //POST CONTROLLERS
 
 // export const generalCreatePostCtrl = async (req: Request, res: Response) => {
@@ -47,16 +47,10 @@ export const createPostCtrl = async (req: Request<{}, {}, CreatePostRequestDTO>,
     }
 };
 
-export const updatePostCtrl = async (req: Request, res: Response) => {
+export const updatePostCtrl = async (req: Request<{ id: string }, {}, UpdatePostRequestDTO>, res: Response) => {
     try {
         const { id } = req.params;
-        const defaultFields = {
-            deleteKeys: [],
-            noUpdateKeys: [],
-            hashtags: [],
-            user_tags: []
-        };
-        let updateData = { ...defaultFields, ...req.body };
+        let updateData = req.body;
         const files = Array.isArray(req?.files) ? req.files : undefined;
 
         const updatedPost = await postService.updatePost(id, updateData, files);
@@ -99,14 +93,14 @@ export const createPollCtrl = async (req: Request<{}, {}, CreatePollRequestDTO>,
     }
 };
 
-export const updatePollCtrl = async (req: Request, res: Response) => {
+export const updatePollCtrl = async (req: Request<{ id: string }, {}, UpdateQuoteAndPollPostRequestDTO>, res: Response) => {
     try {
         const { id } = req.params;
-        const defaultFields = {
-            hashtags: [],
-            user_tags: []
-        };
-        let updateData = { ...defaultFields, ...req.body };
+        // const defaultFields = {
+        //     hashtags: [],
+        //     user_tags: []
+        // };
+        let updateData = req.body;
 
         const updatedPoll = await postService.updatePoll(id, updateData);
 
@@ -130,14 +124,14 @@ export const createQuotePostCtrl = async (req: Request<{}, {}, CreateQuotePostRe
     }
 }
 
-export const updateQuotePostCtrl = async (req: Request, res: Response) => {
+export const updateQuotePostCtrl = async (req: Request<{ id: string }, {}, UpdateQuoteAndPollPostRequestDTO>, res: Response) => {
     try {
         const { id } = req.params;
-        const defaultFields = {
-            hashtags: [],
-            user_tags: []
-        };
-        let updateData = { ...defaultFields, ...req.body };
+        // const defaultFields = {
+        //     hashtags: [],
+        //     user_tags: []
+        // };
+        let updateData = req.body;
 
         const updatedQuotePost = await postService.updateQuotePost(id, updateData);
 

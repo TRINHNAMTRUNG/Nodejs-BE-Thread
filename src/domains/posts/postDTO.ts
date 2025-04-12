@@ -46,6 +46,9 @@ class Urls {
 //RESPONSES POST
 export class PostDTO {
     @Expose()
+    type!: string;
+
+    @Expose()
     @Transform(params => params.obj._id)
     _id!: Schema.Types.ObjectId;
 

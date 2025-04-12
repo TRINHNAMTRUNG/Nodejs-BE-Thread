@@ -1,7 +1,7 @@
 export enum TypePost {
     NORMAL = "normal",
     POLL = "poll",
-    QOUTE = "quote"
+    QUOTE = "quote"
 }
 export enum StatusPoll {
     CLOSED = "Closed",
