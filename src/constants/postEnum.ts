@@ -3,3 +3,7 @@ export enum TypePost {
     POLL = "poll",
     QOUTE = "quote"
 }
+export enum StatusPoll {
+    CLOSED = "Closed",
+    OPENNING = "Openning"
+}
