@@ -47,7 +47,7 @@ export const updatePost = async (postId: string, data: UpdatePostRequestDTO, fil
             throw new AppError("At least one field must be updated", 400);
         }
         // 1. Get the existing post to verify it exists
-        const existingPost = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.POLL });
+        const existingPost = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.NORMAL });
         if (!existingPost) {
             throw new AppError("Normal post not found", 404);
         }
