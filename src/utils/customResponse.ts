@@ -4,6 +4,6 @@ export interface ResponseT<DataType, ErrorDetailType> {
     statusCode: number;
     success: boolean;
     message: string
-    errorCode?: ErrorCode,
-    details?: ErrorDetailType | null;
+    errorCode?: ErrorCode | string,
+    details?: ErrorDetailType | string | null;
 }

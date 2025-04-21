@@ -10,23 +10,16 @@ import {
     IsInt,
     Min,
     Max,
-    IsDateString,
     ArrayMinSize,
     ArrayMaxSize,
     IsObject,
 } from 'class-validator';
-import { Schema } from 'mongoose';
 
 // Enum cho visibility và status_poll
 enum Visibility {
     PUBLIC = 'public',
     FRIENDS = 'friends',
     PRIVATE = 'private',
-}
-
-enum StatusPoll {
-    CLOSED = 'Closed',
-    OPENING = 'Opening',
 }
 
 // Class con cho request

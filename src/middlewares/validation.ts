@@ -4,6 +4,8 @@ import { plainToClass } from "class-transformer";
 import { responseFomat } from "../utils/responseFomat";
 import { ErrorCode } from "../constants/errorCodes";
 import dotenv from "dotenv";
+import { AppError } from "../utils/AppError";
+import httpStatusCode from "http-status";
 dotenv.config();
 
 enum TypeValidate {
@@ -31,19 +33,11 @@ const coreValidateAny = (DtoClass: new () => any, typeValidate: TypeValidate) =>
             }
 
             if (!dataSource || typeof dataSource !== 'object') {
-                return responseFomat(
-                    res,
-                    null,
-                    'Invalid request data',
-                    false,
-                    400,
-                    ErrorCode.INVALID_INPUT,
-                    null
-                );
+                throw AppError.logic("Invalid request data", httpStatusCode.BAD_REQUEST, httpStatusCode["400_NAME"]);
             }
 
             const dtoInstance = plainToClass(DtoClass, dataSource);
-            console.log("LOGS VALIDATE: ", dtoInstance)
+            // console.log("LOGS VALIDATE: ", dtoInstance)
             const errorsValidate = await validate(dtoInstance);
 
             if (errorsValidate.length > 0) {
@@ -51,15 +45,7 @@ const coreValidateAny = (DtoClass: new () => any, typeValidate: TypeValidate) =>
                     acc[error.property] = Object.values(error.constraints || {});
                     return acc;
                 }, {} as Record<string, string[]>);
-                return responseFomat(
-                    res,
-                    null,
-                    "Validation failed",
-                    false,
-                    400,
-                    ErrorCode.VALIDATION_FAILED,
-                    details
-                )
+                throw AppError.validation("Validation failed", httpStatusCode.BAD_REQUEST, ErrorCode.VALIDATION_FAILED, details);
             }
 
             switch (typeValidate) {
@@ -75,19 +61,8 @@ const coreValidateAny = (DtoClass: new () => any, typeValidate: TypeValidate) =>
             }
             next();
         } catch (error: any) {
-            console.log('> Validation middleware error: ', error);
-
-            const isDev = process.env.NODE_ENV === 'development';
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            return responseFomat(
-                res,
-                null,
-                "An error occurred while validating request",
-                false,
-                500,
-                ErrorCode.VALIDATION_PROCESSING_ERROR,
-                isDev ? { "server": [message] } : null
-            )
+            console.log('> An error occurred while validating request: ', error);
+            next(error);
         }
     }
 }

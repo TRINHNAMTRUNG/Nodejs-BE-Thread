@@ -1,15 +1,13 @@
 
 
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import * as pollVoteService from './pollVoteService';
-import { AppError, responseFomat, handleError } from '../../utils/responseFomat';
-import { PollVoteDTO } from './pollVoteDTO';
+import { responseFomat } from '../../utils/responseFomat';
+import { PollVoteDTO } from './pollVoteResponse.dto';
 import { plainToInstance } from 'class-transformer';
-import { voteAPollOptionReq } from '../../interfaces';
-import { ErrorCode } from "../../constants/errorCodes";
 import { VotePollOptionRequestDTO } from '../posts/postRequest.dto';
 
-export const voteAPollOptionCtrl = async (req: Request<{ id: string }, {}, VotePollOptionRequestDTO>, res: Response) => {
+export const voteAPollOptionCtrl = async (req: Request<{ id: string }, {}, VotePollOptionRequestDTO>, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const voteData = req.body;
@@ -17,7 +15,7 @@ export const voteAPollOptionCtrl = async (req: Request<{ id: string }, {}, VoteP
         const voteDto = plainToInstance(PollVoteDTO, vote, { excludeExtraneousValues: true });
         return responseFomat(res, voteDto, "Voted successfully");
     } catch (error: any) {
-        handleError(error, res, "Error voting poll option", ErrorCode.INTERNAL_SERVER_ERROR);
+        next(error);
     }
 }
 

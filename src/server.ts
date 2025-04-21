@@ -1,18 +1,40 @@
 import "reflect-metadata";
-import express from "express";
+import express, { NextFunction } from "express";
 import dotenv from "dotenv";
 import routes from "./routes/index";
 import { Request, Response } from "express";
+import { AppError } from "./utils/AppError";
+import httpStatus from "http-status";
+import { errorConverter, errorHandler } from "./middlewares/handleErorr.middleware";
 // import cors from "cors";
 dotenv.config();
 
 const app = express();
 
+// parse json request body
 app.use(express.json());
+
+// parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
 
-//main 
-app.use("/v1/api", routes);
+// api routes
+// app.use((req, res, next) => {
+//     console.log(`Nhận yêu cầu: ${req.method} ${req.url}`);
+//     console.log('Headers:', req.headers);
+//     next();
+// });
+app.use("/api", routes);
+
+// send back a 404 error for any unknow api request
+app.use((req: Request, res: Response, next: NextFunction) => {
+    next(AppError.logic("api not found", httpStatus.NOT_FOUND, httpStatus["404_NAME"]));
+})
+
+// convert error
+app.use(errorConverter);
+
+// handle error
+app.use(errorHandler);
 
 //----Test routes
 // import multer from "multer";

@@ -1,11 +1,12 @@
 import mongoose, { Types } from "mongoose";
 import PostModel from "./postModel";
-import { createPostReq, updatePostReq, Urls, NewFile, createPollReq, updatePollReq, createQuotePostReq, updateQuotePostReq, voteAPollOptionReq } from "../../interfaces/index";
 import * as hashtagService from "../hashtags/hashtagService";
 import { deleteManyObjectS3, pushManyObjectS3 } from "../../utils/s3FileManager";
-import { AppError } from "../../utils/responseFomat";
-import { CreatePollRequestDTO, CreatePostRequestDTO, UpdatePostRequestDTO, UpdateQuoteAndPollPostRequestDTO } from "./postRequest.dto";
+import { AppError } from "../../utils/AppError";
+import { CreatePollRequestDTO, CreatePostRequestDTO, UpdatePostRequestDTO, UpdateQuoteAndPollPostRequestDTO, CreateQuotePostRequestDTO } from "./postRequest.dto";
 import { TypePost } from "../../constants/postEnum";
+import { NewFile, Urls } from "../../interfaces";
+import httpStatusCode from "http-status";
 
 const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Promise<Urls[]> => {
     if (!files || files.length === 0) {
@@ -23,211 +24,161 @@ const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Pr
 
 // POST SERVICES
 export const createPost = async (post: CreatePostRequestDTO, files: Express.Multer.File[] | undefined) => {
-    try {
-        console.log("LOGS SVC: ", post);
-        const { hashtags = [] } = post;
-        const hashtagTask = hashtags?.length > 0 ? hashtagService.findOrCreateHashtags(post.hashtags) : Promise.resolve();
-        const filesTask = files ? pushManyObjectS3Svc(files) : Promise.resolve([]);
-        const [_, newUrls] = await Promise.all([hashtagTask, filesTask]);
+    // console.log("LOGS SVC: ", post);
+    const { hashtags = [] } = post;
+    const hashtagTask = hashtags?.length > 0 ? hashtagService.findOrCreateHashtags(post.hashtags) : Promise.resolve();
+    const filesTask = files ? pushManyObjectS3Svc(files) : Promise.resolve([]);
+    const [_, newUrls] = await Promise.all([hashtagTask, filesTask]);
 
-        const newData = { ...post, urls: newUrls, type: TypePost.NORMAL };
-        const newPost = await PostModel.create(newData);
-        return newPost.toObject();
-    } catch (error) {
-        console.error("Error creating post:", error);
-        throw error;
-    }
+    const newData = { ...post, urls: newUrls, type: TypePost.NORMAL };
+    const newPost = await PostModel.create(newData);
+    return newPost.toObject();
 };
 
 export const updatePost = async (postId: string, data: UpdatePostRequestDTO, files: Express.Multer.File[] | undefined) => {
-    try {
-        const { hashtags = [], deleteKeys = [], noUpdateKeys = [] } = data;
-        const isEmptyUpdate = Object.values(data).every(value => value === undefined);
-        if (isEmptyUpdate) {
-            throw new AppError("At least one field must be updated", 400);
-        }
-        // 1. Get the existing post to verify it exists
-        const existingPost = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.NORMAL });
-        if (!existingPost) {
-            throw new AppError("Normal post not found", 404);
-        }
-        // 2. Validate keys in deleteKeys and noUpdateKeys
-        const existingKeys = existingPost.urls.map(url => url.key);
-        const validateKeys = (keys: string[], fieldName: string) => {
-            const invalidKeys = keys.filter(key => !existingKeys.includes(key));
-            if (invalidKeys.length > 0)
-                throw new AppError(`Invalid ${fieldName}: ${invalidKeys.join("; ")}`, 400);
-        };
-        if (deleteKeys.length) validateKeys(deleteKeys, "deleteKeys");
-        if (noUpdateKeys.length) validateKeys(noUpdateKeys, "noUpdateKeys");
-        // 3. Process hashtags if provided
-        const hashtagTask = hashtags.length ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
-        // 4. Handle file deletions if requested
-        const deleteTask = deleteKeys.length ? deleteManyObjectS3(deleteKeys) : Promise.resolve([]);
-        // 5. Upload any new files
-        const uploadTask = files?.length ? pushManyObjectS3Svc(files) : Promise.resolve([]);
-        // 6. Wait for all tasks to complete
-        const [failedKeys, newUrls] = await Promise.all([deleteTask, uploadTask, hashtagTask]);
-        // 7. Handle URLs update
-        const currentUrls = existingPost.urls || [];
-        const keptUrls = currentUrls.filter(url => noUpdateKeys.includes(url.key) && !deleteKeys.includes(url.key));
-        const filteredData: Partial<updatePostReq> = { ...data };
-        delete filteredData.deleteKeys;
-        delete filteredData.noUpdateKeys;
-        const updateObj = { ...filteredData, urls: [...keptUrls, ...newUrls] };
-        // 8. Update the post
-        const updatedPost = await PostModel.findByIdAndUpdate(
-            new mongoose.Types.ObjectId(postId),
-            { $set: updateObj },
-            { new: true }
-        );
-
-        return updatedPost ? updatedPost.toObject() : null;
-    } catch (error) {
-        console.error("Error updating post:", error);
-        throw error;
+    const { hashtags = [], deleteKeys = [], noUpdateKeys = [] } = data;
+    const isEmptyUpdate = Object.values(data).every(value => value === undefined);
+    if (isEmptyUpdate) {
+        throw AppError.logic("At least one field must be updated", 400, httpStatusCode["400_NAME"]);
     }
+    // 1. Get the existing post to verify it exists
+    const existingPost = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.NORMAL });
+    if (!existingPost) {
+        throw AppError.logic("Normal post not found", 404, httpStatusCode["404_NAME"]);
+    }
+    // 2. Validate keys in deleteKeys and noUpdateKeys
+    const existingKeys = existingPost.urls.map(url => url.key);
+    const validateKeys = (keys: string[], fieldName: string) => {
+        const invalidKeys = keys.filter(key => !existingKeys.includes(key));
+        if (invalidKeys.length > 0)
+            throw AppError.logic(`Invalid ${fieldName}: ${invalidKeys.join("; ")}`, 400, httpStatusCode["400_NAME"]);
+    };
+    if (deleteKeys.length) validateKeys(deleteKeys, "deleteKeys");
+    if (noUpdateKeys.length) validateKeys(noUpdateKeys, "noUpdateKeys");
+    // 3. Process hashtags if provided
+    const hashtagTask = hashtags.length ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
+    // 4. Handle file deletions if requested
+    const deleteTask = deleteKeys.length ? deleteManyObjectS3(deleteKeys) : Promise.resolve([]);
+    // 5. Upload any new files
+    const uploadTask = files?.length ? pushManyObjectS3Svc(files) : Promise.resolve([]);
+    // 6. Wait for all tasks to complete
+    const [failedKeys, newUrls] = await Promise.all([deleteTask, uploadTask, hashtagTask]);
+    // 7. Handle URLs update
+    const currentUrls = existingPost.urls || [];
+    const keptUrls = currentUrls.filter(url => noUpdateKeys.includes(url.key) && !deleteKeys.includes(url.key));
+    const filteredData: Partial<UpdatePostRequestDTO> = { ...data };
+    delete filteredData.deleteKeys;
+    delete filteredData.noUpdateKeys;
+    const updateObj = { ...filteredData, urls: [...keptUrls, ...newUrls] };
+    // 8. Update the post
+    const updatedPost = await PostModel.findByIdAndUpdate(
+        new mongoose.Types.ObjectId(postId),
+        { $set: updateObj },
+        { new: true }
+    );
+
+    return updatedPost ? updatedPost.toObject() : null;
 };
 
 export const deletePost = async (postId: string, urlKeys: string[]): Promise<boolean> => {
-    try {
-        const [failedKeys, deletedPost] = await Promise.all([
-            deleteManyObjectS3(urlKeys),
-            PostModel.findByIdAndDelete(postId)
-        ]);
+    const [failedKeys, deletedPost] = await Promise.all([
+        deleteManyObjectS3(urlKeys),
+        PostModel.findByIdAndDelete(postId)
+    ]);
 
-        if (failedKeys.length > 0) {
-            console.warn("Some files failed to delete from S3:", failedKeys);
-        }
-
-        return deletedPost ? true : false;
-    } catch (error) {
-        console.error("Error in deletePost:", error);
-        throw new Error("Internal server error");
+    if (failedKeys.length > 0) {
+        console.warn("Some files failed to delete from S3:", failedKeys);
     }
+
+    return deletedPost ? true : false;
 };
 
 //POLL SERVICES
 export const createPoll = async (data: CreatePollRequestDTO) => {
-    try {
-        const { hashtags = [] } = data;
+    const { hashtags = [] } = data;
 
-        const hashtagTask = hashtags.length > 0 ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
-        const createPostTask = PostModel.create({ ...data, type: TypePost.POLL });
-        const [_, newPost] = await Promise.all([hashtagTask, createPostTask]);
+    const hashtagTask = hashtags.length > 0 ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
+    const createPostTask = PostModel.create({ ...data, type: TypePost.POLL });
+    const [_, newPost] = await Promise.all([hashtagTask, createPostTask]);
 
-        return newPost.toObject();
-    } catch (error) {
-        console.error("Error creating poll:", error);
-        throw error;
-    }
+    return newPost.toObject();
 };
 
 export const updatePoll = async (postId: string, data: UpdateQuoteAndPollPostRequestDTO) => {
-    try {
-        const { hashtags = [] } = data;
-        const isEmptyUpdate = Object.values(data).every(value => value === undefined);
-        if (isEmptyUpdate) {
-            throw new AppError("At least one field must be updated", 400);
-        }
-        const pollPostExisting = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.POLL });
-        if (!pollPostExisting) {
-            throw new AppError("Poll post not found", 404);
-        }
-        const updatedPoll = await PostModel.findByIdAndUpdate(
-            new mongoose.Types.ObjectId(postId),
-            { $set: data },
-            { new: true }
-        );
-        hashtags.length && await hashtagService.findOrCreateHashtags(hashtags);
-        return updatedPoll;
-    } catch (error) {
-        console.error("Error updating poll:", error);
-        throw error;
+    const { hashtags = [] } = data;
+    const isEmptyUpdate = Object.values(data).every(value => value === undefined);
+    if (isEmptyUpdate) {
+        throw AppError.logic("At least one field must be updated", 400, httpStatusCode["400_NAME"]);
     }
+    const pollPostExisting = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.POLL });
+    if (!pollPostExisting) {
+        throw AppError.logic("Poll post not found", 404, httpStatusCode["404_NAME"]);
+    }
+    const updatedPoll = await PostModel.findByIdAndUpdate(
+        new mongoose.Types.ObjectId(postId),
+        { $set: data },
+        { new: true }
+    );
+    hashtags.length && await hashtagService.findOrCreateHashtags(hashtags);
+    return updatedPoll;
 }
 
 //QUOTE POST SERVICES
-export const createQuotePost = async (data: createQuotePostReq) => {
-    try {
-        const { hashtags } = data;
-        const hashtagTask = hashtags !== undefined && hashtags.length > 0 ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
-        const createPostTask = PostModel.create({ ...data, type: TypePost.QUOTE });
-        const [_, newPost] = await Promise.all([hashtagTask, createPostTask]);
+export const createQuotePost = async (data: CreateQuotePostRequestDTO) => {
+    const { hashtags } = data;
+    const hashtagTask = hashtags !== undefined && hashtags.length > 0 ? hashtagService.findOrCreateHashtags(hashtags) : Promise.resolve();
+    const createPostTask = PostModel.create({ ...data, type: TypePost.QUOTE });
+    const [_, newPost] = await Promise.all([hashtagTask, createPostTask]);
 
-        // update qoute_post_count in main post
-        await PostModel.updateOne({ _id: newPost.quoted_post_id }, { $inc: { quote_post_count: 1 } })
-        return newPost.toObject();
-    } catch (error) {
-        console.error("Error creating quote post:", error);
-        throw error;
-    }
+    // update qoute_post_count in main post
+    await PostModel.updateOne({ _id: newPost.quoted_post_id }, { $inc: { quote_post_count: 1 } })
+    return newPost.toObject();
 }
 
 export const updateQuotePost = async (postId: string, data: UpdateQuoteAndPollPostRequestDTO) => {
-    try {
-        const { hashtags = [] } = data;
-        hashtags.length && await hashtagService.findOrCreateHashtags(hashtags);
-        const isEmptyUpdate = Object.values(data).every(value => value === undefined);
-        if (isEmptyUpdate) {
-            throw new AppError("At least one field must be updated", 400);
-        }
-        const quotePostExisting = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.QUOTE });
-        if (!quotePostExisting) {
-            throw new AppError("Quote post not found", 404);
-        }
-        const updatedQuotePost = await PostModel.findByIdAndUpdate(
-            new mongoose.Types.ObjectId(postId),
-            { $set: data },
-            { new: true }
-        );
-        return updatedQuotePost;
-    } catch (error) {
-        console.error("Error updating quote post:", error);
-        throw error;
+    const { hashtags = [] } = data;
+    hashtags.length && await hashtagService.findOrCreateHashtags(hashtags);
+    const isEmptyUpdate = Object.values(data).every(value => value === undefined);
+    if (isEmptyUpdate) {
+        throw AppError.logic("At least one field must be updated", 400, httpStatusCode["400_NAME"]);
     }
+    const quotePostExisting = await PostModel.findOne({ _id: new mongoose.Types.ObjectId(postId), type: TypePost.QUOTE });
+    if (!quotePostExisting) {
+        throw AppError.logic("Quote post not found", 404, httpStatusCode["404_NAME"]);
+    }
+    const updatedQuotePost = await PostModel.findByIdAndUpdate(
+        new mongoose.Types.ObjectId(postId),
+        { $set: data },
+        { new: true }
+    );
+    return updatedQuotePost;
 }
 
 // GET SERVICES
 export const getFileKeys = async (postId: string): Promise<string[]> => {
-    try {
-        const result = await PostModel.aggregate([
-            { $match: { _id: new mongoose.Types.ObjectId(postId) } },
-            {
-                $project: {
-                    urlKeys: { $ifNull: [{ $map: { input: "$urls", as: "url", in: "$$url.key" } }, []] },
-                    _id: 0
-                }
+    const result = await PostModel.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(postId) } },
+        {
+            $project: {
+                urlKeys: { $ifNull: [{ $map: { input: "$urls", as: "url", in: "$$url.key" } }, []] },
+                _id: 0
             }
-        ]);
+        }
+    ]);
 
-        return result.length > 0 ? result[0].urlKeys : [];
-    } catch (error) {
-        console.error("Database error in getFileKeys:", error);
-        throw new Error("Internal server error");
-    }
+    return result.length > 0 ? result[0].urlKeys : [];
 };
 
 export const getPostByUserId = async (userId: string, limit: number = 10, page: number = 1) => {
-    try {
-        const posts = await PostModel.find({ creator_id: new mongoose.Types.ObjectId(userId) })
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit);
+    const posts = await PostModel.find({ creator_id: new mongoose.Types.ObjectId(userId) })
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit);
 
-        return posts.map(post => post.toObject());
-    } catch (error) {
-        console.error("Error in getPostByUserId:", error);
-        throw error;
-    }
+    return posts.map(post => post.toObject());
 };
 
 export const getAllPosts = async () => {
-    try {
-        const posts = await PostModel.find().sort({ createdAt: -1 });
-        return posts.map(post => post.toObject());
-    } catch (error) {
-        console.error("Error in getAllPosts:", error);
-        throw error;
-    }
+    const posts = await PostModel.find().sort({ createdAt: -1 });
+    return posts.map(post => post.toObject());
 };

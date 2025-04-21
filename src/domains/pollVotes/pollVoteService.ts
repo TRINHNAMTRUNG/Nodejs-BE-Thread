@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
-import { voteAPollOptionReq } from "../../interfaces";
-import { AppError } from "../../utils/responseFomat";
+import { AppError } from "../../utils/AppError";
 import PostModel from "../posts/postModel";
 import { PollVoteModel } from "./pollVoteModel";
 import { VotePollOptionRequestDTO } from "../posts/postRequest.dto";
 import { ErrorCode } from "../../constants/errorCodes";
 import { StatusPoll } from "../../constants/postEnum";
-
+import httpStatusCode from "http-status"
 
 export const voteAPollOption = async (postId: string, dataVote: VotePollOptionRequestDTO) => {
     const session = await mongoose.startSession();
@@ -16,7 +15,7 @@ export const voteAPollOption = async (postId: string, dataVote: VotePollOptionRe
         // Check if post note found
         const postExisting = await PostModel.findById(postId);
         if (!postExisting || postExisting.type !== "poll") {
-            throw new AppError("Post not found", 404);
+            throw AppError.logic("Post not found", 404, httpStatusCode["404_NAME"]);
         }
         // Check if post has ended (date now > end date)
         session.startTransaction();
@@ -25,16 +24,16 @@ export const voteAPollOption = async (postId: string, dataVote: VotePollOptionRe
                 postExisting.poll!.status_poll = StatusPoll.CLOSED;
                 await postExisting.save();
             }
-            throw new AppError("The poll has ended.", 400);
+            throw AppError.logic("The poll has ended.", 400, httpStatusCode["400_NAME"]);
         }
         // Check if user is creator
         if (user_id === postExisting.creator_id.toString()) {
-            throw new AppError("Creator can't vote in their own poll", 400);
+            throw AppError.logic("Creator can't vote in their own poll", 400, httpStatusCode["400_NAME"]);
         }
         // Check if user is creator
         const userVoted = await PollVoteModel.findOne({ user_id: user_id });
         if (userVoted) {
-            throw new AppError("Users voted for options in the poll post", 400);
+            throw AppError.logic("Users voted for options in the poll post", 400, httpStatusCode["400_NAME"]);
         }
 
         const updateVoteCountTask = PostModel.updateOne(

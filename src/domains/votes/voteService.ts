@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import { VoteModel } from "./voteModel";
 import PostModel from "../posts/postModel";
-import { AppError } from "../../utils/responseFomat";
-
+import { AppError } from "../../utils/AppError";
+import httpStatusCode from "http-status"
 export const voteAPostService = async (postId: string, userId: string) => {
     const session = await mongoose.startSession();
 
@@ -10,7 +10,7 @@ export const voteAPostService = async (postId: string, userId: string) => {
         // Tìm post
         const post = await PostModel.findById(postId);
         if (!post) {
-            throw new AppError("Post not found", 404);
+            throw AppError.logic("Post not found", 404, httpStatusCode["404_NAME"]);
         }
 
         // Kiểm tra xem user đã vote chưa

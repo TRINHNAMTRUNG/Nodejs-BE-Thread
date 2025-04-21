@@ -1,12 +1,11 @@
-import { Request, Response } from "express";
-import { handleError, responseFomat } from "../../utils/responseFomat";
+import { NextFunction, Request, Response } from "express";
+import { responseFomat } from "../../utils/responseFomat";
 import * as hashtagService from "./hashtagService";
 import { queryHashtagReq } from "../../interfaces/index";
 import { plainToInstance } from "class-transformer";
-import { HashtagRes } from "./hashtagDTO";
-import { ErrorCode } from "../../constants/errorCodes";
+import { HashtagRes } from "./hashtagResponse.dto";
 
-export const recommendHashtag = async (req: Request<{}, any, any, queryHashtagReq>, res: Response) => {
+export const recommendHashtag = async (req: Request<{}, any, any, queryHashtagReq>, res: Response, next: NextFunction) => {
     try {
         const { limit, query } = req.query;
         const hashtags = await hashtagService.getTrendingHashtags(Number(limit), query);
@@ -15,6 +14,6 @@ export const recommendHashtag = async (req: Request<{}, any, any, queryHashtagRe
 
         return responseFomat(res, hashtagsDto, "Hashtag recommend successfully");
     } catch (error: any) {
-        handleError(error, res, "Error voting poll option", ErrorCode.INTERNAL_SERVER_ERROR);
+        next(error);
     }
 }

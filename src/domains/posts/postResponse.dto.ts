@@ -1,5 +1,5 @@
-import { Expose, Transform, Type } from 'class-transformer';
-import { Schema } from 'mongoose';
+import { Expose, Transform, Type } from "class-transformer";
+import { Schema } from "mongoose";
 
 class UserTag {
     @Expose()
@@ -19,6 +19,9 @@ class PollOption {
 
     @Expose()
     voters!: Schema.Types.ObjectId[];
+
+    @Expose()
+    _id!: string
 }
 
 class Poll {
@@ -36,12 +39,15 @@ class Poll {
 class Urls {
     @Expose()
     key!: string;
-
     @Expose()
-    url!: string;
+    url!: string
 }
 
-export class PostResponseDTO {
+//RESPONSES POST
+export class PostDTO {
+    @Expose()
+    type!: string;
+
     @Expose()
     @Transform(params => params.obj._id)
     _id!: Schema.Types.ObjectId;
@@ -63,7 +69,7 @@ export class PostResponseDTO {
     comment_count!: number;
 
     @Expose()
-    save_post_count!: number;
+    qoute_post_count!: number;
 
     @Expose()
     @Transform(({ value }) => value ?? [])
@@ -81,14 +87,14 @@ export class PostResponseDTO {
     @Expose()
     createdAt!: Date;
 }
-
-export class PollResponseDTO extends PostResponseDTO {
+//RESPONSES POLL
+export class PollDTO extends PostDTO {
     @Expose()
     @Type(() => Poll)
     poll!: Poll;
 }
-
-export class QuotePostResponseDTO extends PostResponseDTO {
+//RESPONSES QUOTE POST
+export class QuotePostDTO extends PostDTO {
     @Expose()
     @Transform(params => params.obj.quoted_post_id)
     quoted_post_id!: Schema.Types.ObjectId;

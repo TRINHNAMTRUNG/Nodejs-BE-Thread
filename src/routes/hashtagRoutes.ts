@@ -1,9 +1,10 @@
 import express from "express";
 import * as hashtagController from "../domains/hashtags/hashtagController";
-import { validateQueryParams } from "../middlewares/validation"
-import { recommendHashtagSchema } from "../domains/hashtags/hashtagValidation";
+import { validateParamDto } from "../middlewares/validation"
+import { PaginationQueryRequestDTO } from "../domains/posts/postRequest.dto";
+
 const router = express.Router();
 
-router.get("/", validateQueryParams(recommendHashtagSchema), hashtagController.recommendHashtag);
+router.get("/", validateParamDto(PaginationQueryRequestDTO), hashtagController.recommendHashtag);
 
 export default router;

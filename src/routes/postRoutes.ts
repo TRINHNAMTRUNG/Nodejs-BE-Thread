@@ -1,10 +1,8 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import * as postController from "../domains/posts/postController";
 import * as voteController from "../domains/votes/voteController";
 import * as pollVoteController from "../domains/pollVotes/pollVotecController";
 import { validateBodyDto, validateParamDto, validateQueryDto } from "../middlewares/validation";
-import { generalUpdatePostSchema, generalCreatePostSchema, idQuerySchema, votePollOptionSchema } from "../domains/posts/postValidation";
-import { votePostSchema } from "../domains/votes/voteValidation";
 import {
     CreatePostRequestDTO,
     CreateQuotePostRequestDTO,
@@ -19,7 +17,14 @@ import multer from "multer";
 const router = express.Router();
 
 const upload = multer();
-
+// // Middleware kiểm tra Content-Type
+// const checkContentType = (req: Request, res: Response, next: NextFunction) => {
+//     const contentType = req.headers['content-type'] || '';
+//     if (contentType.includes('multipart/form-data')) {
+//         return upload.array("files")(req, res, next);
+//     }
+//     return next(); // Bỏ qua multer nếu không phải multipart/form-data
+// };
 //Post routes
 // Create Normal - Poll - Quote Post
 router.post("/normals",
