@@ -36,7 +36,7 @@ const coreValidateAny = (DtoClass: new () => any, typeValidate: TypeValidate) =>
                 throw AppError.logic("Invalid request data", httpStatusCode.BAD_REQUEST, httpStatusCode["400_NAME"]);
             }
 
-            const dtoInstance = plainToClass(DtoClass, dataSource);
+            const dtoInstance = plainToClass(DtoClass, dataSource, { enableImplicitConversion: true });
             // console.log("LOGS VALIDATE: ", dtoInstance)
             const errorsValidate = await validate(dtoInstance);
 

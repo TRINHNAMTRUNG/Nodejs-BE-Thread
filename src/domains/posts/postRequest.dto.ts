@@ -212,14 +212,14 @@ export class PaginationQueryRequestDTO {
     @IsInt({ message: 'Page must be an integer' })
     @Min(1, { message: 'Page cannot be less than 1' })
     @IsOptional()
-    page?: number = 1;
+    page?: number;
 
     @Expose()
     @IsInt({ message: 'Limit must be an integer' })
     @Min(1, { message: 'Limit cannot be less than 1' })
     @Max(100, { message: 'Limit cannot exceed 100' })
     @IsOptional()
-    limit?: number = 10;
+    limit?: number;
 }
 
 //Vote like a post
