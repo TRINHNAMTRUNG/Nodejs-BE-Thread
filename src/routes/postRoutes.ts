@@ -89,6 +89,9 @@ router.get("/user/:user_id", validateQueryDto(PaginationQueryRequestDTO), postCo
 // Get post by id
 router.get("/:id", validateParamDto(IdQueryRequestDTO), postController.getPostByIdCtrl);
 
+// Get all posts
+router.get("/all", validateQueryDto(PaginationQueryRequestDTO), postController.getAllPostsCtrl);
+
 router.get("/:id", postController.getPostByIdUserCtrl);
 router.get("/", postController.getAllPostsCtrl);
 

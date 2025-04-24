@@ -6,6 +6,19 @@ import { plainToInstance } from "class-transformer";
 import { CreatePollRequestDTO, CreatePostRequestDTO, CreateQuotePostRequestDTO, UpdatePostRequestDTO, UpdateQuoteAndPollPostRequestDTO } from "./postRequest.dto";
 //POST CONTROLLERS
 
+export const getAllPostsCtrl = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { page = 1, limit = 8 } = req.query;
+
+        const posts = await postService.getRandomPosts(Number(page), Number(limit));
+        const postDtos = plainToInstance(PostDTO, posts, { excludeExtraneousValues: true });
+
+        return responseFomat(res, postDtos, "Random posts retrieved successfully");
+    } catch (error: any) {
+        next(error);
+    }
+};
+
 export const getPostByIdCtrl = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
@@ -194,12 +207,3 @@ export const getPostByIdUserCtrl = async (req: Request, res: Response, next: Nex
     }
 };
 
-export const getAllPostsCtrl = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const posts = await postService.getAllPosts();
-        const postDtos = plainToInstance(PostDTO, posts, { excludeExtraneousValues: true });
-        return responseFomat(res, postDtos, "Posts retrieved successfully");
-    } catch (error: any) {
-        next(error);
-    }
-};
