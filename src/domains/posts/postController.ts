@@ -6,6 +6,33 @@ import { plainToInstance } from "class-transformer";
 import { CreatePollRequestDTO, CreatePostRequestDTO, CreateQuotePostRequestDTO, UpdatePostRequestDTO, UpdateQuoteAndPollPostRequestDTO } from "./postRequest.dto";
 //POST CONTROLLERS
 
+export const getPostsByHashtagCtrl = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { hashtag } = req.params;
+        const { page = 1, limit = 8 } = req.query;
+
+        const posts = await postService.getPostsByHashtag(hashtag, Number(page), Number(limit));
+        const postDtos = plainToInstance(PostDTO, posts, { excludeExtraneousValues: true });
+
+        return responseFomat(res, postDtos, "Posts retrieved successfully");
+    } catch (error: any) {
+        next(error);
+    }
+};
+
+export const searchPostsCtrl = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { query, page = 1, limit = 8 } = req.query;
+
+        const posts = await postService.searchPosts(query as string, Number(page), Number(limit));
+        const postDtos = plainToInstance(PostDTO, posts, { excludeExtraneousValues: true });
+
+        return responseFomat(res, postDtos, "Posts retrieved successfully");
+    } catch (error: any) {
+        next(error);
+    }
+};
+
 export const createPostCtrl = async (req: Request<{}, {}, CreatePostRequestDTO>, res: Response, next: NextFunction) => {
     try {
         const post = req.body;

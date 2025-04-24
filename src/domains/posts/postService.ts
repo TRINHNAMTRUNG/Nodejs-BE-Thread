@@ -23,6 +23,27 @@ const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Pr
 };
 
 // POST SERVICES
+
+export const getPostsByHashtag = async (hashtag: string, page: number, limit: number) => {
+    const skip = (page - 1) * limit;
+
+    return await PostModel.find({ hashtags: hashtag })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+};
+
+export const searchPosts = async (query: string, page: number, limit: number) => {
+    const skip = (page - 1) * limit;
+
+    return await PostModel.find({ content: { $regex: query, $options: "i" } }) // Tìm kiếm không phân biệt hoa thường
+        .sort({ createdAt: -1 }) // Sắp xếp bài viết mới nhất trước
+        .skip(skip)
+        .limit(limit)
+        .lean();
+};
+
 export const createPost = async (post: CreatePostRequestDTO, files: Express.Multer.File[] | undefined) => {
     // console.log("LOGS SVC: ", post);
     const { hashtags = [] } = post;

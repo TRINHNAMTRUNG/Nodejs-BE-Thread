@@ -11,7 +11,8 @@ import {
     IdQueryRequestDTO,
     UpdateQuoteAndPollPostRequestDTO,
     VotePollOptionRequestDTO,
-    VoteAPost
+    VoteAPost,
+    PaginationQueryRequestDTO
 } from "../domains/posts/postRequest.dto";
 import multer from "multer";
 const router = express.Router();
@@ -68,12 +69,6 @@ router.post("/:id/votes",
     validateBodyDto(VoteAPost),
     voteController.voteAPostCtrl
 );
-// Unvote Post
-// router.delete("/:id/votes",
-//     validateParamDto(IdQueryRequestDTO),
-//     validateBodyDto(VoteAPost),
-//     voteController.voteAPostCtrl
-// );
 
 // Vote A Poll Option
 router.post("/:id/polls/votes",
@@ -81,7 +76,12 @@ router.post("/:id/polls/votes",
     validateBodyDto(VotePollOptionRequestDTO),
     pollVoteController.voteAPollOptionCtrl
 )
-// router.post("/comment/:id", postController.commentPostCtrl);
+
+// Get post by keyword
+router.get("/search", validateQueryDto(PaginationQueryRequestDTO), postController.searchPostsCtrl);
+
+// Get post by hashtag
+router.get("/hashtags/:hashtag", validateQueryDto(PaginationQueryRequestDTO), postController.getPostsByHashtagCtrl);
 
 router.get("/:id", postController.getPostByIdUserCtrl);
 router.get("/", postController.getAllPostsCtrl);
