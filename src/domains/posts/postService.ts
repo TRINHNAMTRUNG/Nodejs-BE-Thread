@@ -24,6 +24,20 @@ const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Pr
 
 // POST SERVICES
 
+export const getPostById = async (id: string) => {
+    return await PostModel.findById(id).lean();
+};
+
+export const getPostsByUser = async (user_id: string, page: number, limit: number) => {
+    const skip = (page - 1) * limit;
+
+    return await PostModel.find({ creator_id: user_id })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+};
+
 export const getPostsByHashtag = async (hashtag: string, page: number, limit: number) => {
     const skip = (page - 1) * limit;
 

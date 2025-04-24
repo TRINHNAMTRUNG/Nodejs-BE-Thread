@@ -83,6 +83,12 @@ router.get("/search", validateQueryDto(PaginationQueryRequestDTO), postControlle
 // Get post by hashtag
 router.get("/hashtags/:hashtag", validateQueryDto(PaginationQueryRequestDTO), postController.getPostsByHashtagCtrl);
 
+// Get post by id user
+router.get("/user/:user_id", validateQueryDto(PaginationQueryRequestDTO), postController.getPostsByUserCtrl);
+
+// Get post by id
+router.get("/:id", validateParamDto(IdQueryRequestDTO), postController.getPostByIdCtrl);
+
 router.get("/:id", postController.getPostByIdUserCtrl);
 router.get("/", postController.getAllPostsCtrl);
 
