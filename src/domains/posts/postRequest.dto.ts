@@ -83,7 +83,7 @@ export class CreatePostRequestDTO {
 
     @Expose()
     @IsArray()
-    @ArrayMinSize(1, { message: 'user_tags must contain at least one tag' })
+    // @ArrayMinSize(1, { message: 'user_tags must contain at least one tag' })
     @ValidateNested({ each: true })
     @Type(() => UserTagRequest)
     @IsOptional()
@@ -92,7 +92,7 @@ export class CreatePostRequestDTO {
 
     @Expose()
     @IsArray()
-    @ArrayMinSize(1, { message: 'Hashtags must contain at least one tag' })
+    // @ArrayMinSize(1, { message: 'Hashtags must contain at least one tag' })
     @IsString({ each: true, message: 'Each hashtag must be a string' })
     @IsOptional()
     // @Transform(({ value }) => value === undefined ! [] : value)

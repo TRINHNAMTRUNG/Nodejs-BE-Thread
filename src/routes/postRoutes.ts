@@ -86,11 +86,12 @@ router.get("/hashtags/:hashtag", validateQueryDto(PaginationQueryRequestDTO), po
 // Get post by id user
 router.get("/user/:user_id", validateQueryDto(PaginationQueryRequestDTO), postController.getPostsByUserCtrl);
 
-// Get post by id
-router.get("/:id", validateParamDto(IdQueryRequestDTO), postController.getPostByIdCtrl);
 
 // Get all posts
 router.get("/all", validateQueryDto(PaginationQueryRequestDTO), postController.getAllPostsCtrl);
+
+// Get post by id
+router.get("/:id", validateParamDto(IdQueryRequestDTO), postController.getPostByIdCtrl);
 
 router.get("/:id", postController.getPostByIdUserCtrl);
 router.get("/", postController.getAllPostsCtrl);

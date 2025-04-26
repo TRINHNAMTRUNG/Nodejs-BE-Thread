@@ -27,11 +27,11 @@ const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Pr
 export const getRandomPosts = async (page: number, limit: number) => {
     const skip = (page - 1) * limit;
 
-    return await PostModel.aggregate([
-        { $sample: { size: skip + limit } }, // Lấy ngẫu nhiên (skip + limit) bài viết
-        { $skip: skip }, // Bỏ qua các bài viết trước đó để phân trang
-        { $limit: limit } // Giới hạn số bài viết trả về
-    ]);
+    return await PostModel.find()
+        .sort({ createdAt: -1 }) // Sắp xếp bài viết mới nhất đến cũ nhất
+        .skip(skip)
+        .limit(limit)
+        .lean();
 };
 
 export const getPostById = async (id: string) => {
