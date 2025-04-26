@@ -11,7 +11,17 @@ export const getAllPostsCtrl = async (req: Request, res: Response, next: NextFun
         const { page = 1, limit = 8 } = req.query;
 
         const posts = await postService.getRandomPosts(Number(page), Number(limit));
-        const postDtos = plainToInstance(PostDTO, posts, { excludeExtraneousValues: true });
+
+        // Transform posts based on their type
+        const postDtos = posts.map(post => {
+            if (post.type === 'poll') {
+                return plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
+            } else if (post.type === 'quote') {
+                return plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
+            } else {
+                return plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
+            }
+        });
 
         return responseFomat(res, postDtos, "Random posts retrieved successfully");
     } catch (error: any) {
@@ -28,7 +38,16 @@ export const getPostByIdCtrl = async (req: Request, res: Response, next: NextFun
             return responseFomat(res, null, "Post not found", false, 404);
         }
 
-        const postDto = plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
+        // Use appropriate DTO based on post type
+        let postDto;
+        if (post.type === 'poll') {
+            postDto = plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
+        } else if (post.type === 'quote') {
+            postDto = plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
+        } else {
+            postDto = plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
+        }
+
         return responseFomat(res, postDto, "Post retrieved successfully");
     } catch (error: any) {
         next(error);
@@ -41,7 +60,17 @@ export const getPostsByUserCtrl = async (req: Request, res: Response, next: Next
         const { page = 1, limit = 8 } = req.query;
 
         const posts = await postService.getPostsByUser(user_id, Number(page), Number(limit));
-        const postDtos = plainToInstance(PostDTO, posts, { excludeExtraneousValues: true });
+
+        // Transform posts based on their type
+        const postDtos = posts.map(post => {
+            if (post.type === 'poll') {
+                return plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
+            } else if (post.type === 'quote') {
+                return plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
+            } else {
+                return plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
+            }
+        });
 
         return responseFomat(res, postDtos, "Posts retrieved successfully");
     } catch (error: any) {
@@ -55,7 +84,17 @@ export const getPostsByHashtagCtrl = async (req: Request, res: Response, next: N
         const { page = 1, limit = 8 } = req.query;
 
         const posts = await postService.getPostsByHashtag(hashtag, Number(page), Number(limit));
-        const postDtos = plainToInstance(PostDTO, posts, { excludeExtraneousValues: true });
+
+        // Transform posts based on their type
+        const postDtos = posts.map(post => {
+            if (post.type === 'poll') {
+                return plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
+            } else if (post.type === 'quote') {
+                return plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
+            } else {
+                return plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
+            }
+        });
 
         return responseFomat(res, postDtos, "Posts retrieved successfully");
     } catch (error: any) {
@@ -68,7 +107,17 @@ export const searchPostsCtrl = async (req: Request, res: Response, next: NextFun
         const { query, page = 1, limit = 8 } = req.query;
 
         const posts = await postService.searchPosts(query as string, Number(page), Number(limit));
-        const postDtos = plainToInstance(PostDTO, posts, { excludeExtraneousValues: true });
+
+        // Transform posts based on their type
+        const postDtos = posts.map(post => {
+            if (post.type === 'poll') {
+                return plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
+            } else if (post.type === 'quote') {
+                return plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
+            } else {
+                return plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
+            }
+        });
 
         return responseFomat(res, postDtos, "Posts retrieved successfully");
     } catch (error: any) {
@@ -200,7 +249,17 @@ export const getPostByIdUserCtrl = async (req: Request, res: Response, next: Nex
             return responseFomat(res, null, "User id not found", false, 404);
         }
 
-        const postsDto = plainToInstance(PostDTO, posts, { excludeExtraneousValues: true });
+        // Transform posts based on their type
+        const postsDto = posts.map(post => {
+            if (post.type === 'poll') {
+                return plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
+            } else if (post.type === 'quote') {
+                return plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
+            } else {
+                return plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
+            }
+        });
+
         return responseFomat(res, postsDto, "Post retrieved successfully");
     } catch (error: any) {
         next(error);

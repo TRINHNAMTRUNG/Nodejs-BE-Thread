@@ -6,10 +6,15 @@ import { Request, Response } from "express";
 import { AppError } from "./utils/AppError";
 import httpStatus from "http-status";
 import { errorConverter, errorHandler } from "./middlewares/handleErorr.middleware";
-// import cors from "cors";
+import cors from "cors";
+
 dotenv.config();
 
 const app = express();
+
+// enable cors
+app.use(cors());
+
 
 // parse json request body
 app.use(express.json());
@@ -35,6 +40,7 @@ app.use(errorConverter);
 
 // handle error
 app.use(errorHandler);
+
 
 //----Test routes
 // import multer from "multer";
