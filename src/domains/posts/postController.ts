@@ -45,35 +45,34 @@ export const getPostByIdCtrl = async (req: Request, res: Response, next: NextFun
         } else {
             postDto = plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
         }
-
         return responseFomat(res, postDto, "Post retrieved successfully");
     } catch (error: any) {
         next(error);
     }
 };
 
-export const getPostsByUserCtrl = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { user_id } = req.params;
-        const { page = 1, limit = 8 } = req.query;
+// export const getPostsByUserCtrl = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { user_id } = req.params;
+//         const { page = 1, limit = 8 } = req.query;
 
-        const posts = await postService.getPostsByUser(user_id, Number(page), Number(limit));
-        // Transform posts based on their type
-        const postDtos = posts.map(post => {
-            if (post.type === 'poll') {
-                return plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
-            } else if (post.type === 'quote') {
-                return plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
-            } else {
-                return plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
-            }
-        });
+//         const posts = await postService.getPostsByUser(user_id, Number(page), Number(limit));
+//         // Transform posts based on their type
+//         const postDtos = posts.map(post => {
+//             if (post.type === 'poll') {
+//                 return plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
+//             } else if (post.type === 'quote') {
+//                 return plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
+//             } else {
+//                 return plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
+//             }
+//         });
 
-        return responseFomat(res, postDtos, "Posts retrieved successfully");
-    } catch (error: any) {
-        next(error);
-    }
-};
+//         return responseFomat(res, postDtos, "Posts retrieved successfully");
+//     } catch (error: any) {
+//         next(error);
+//     }
+// };
 
 export const getPostsByHashtagCtrl = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -231,3 +230,33 @@ export const updateQuotePostCtrl = async (req: Request<{ id: string }, {}, Updat
 
 
 
+
+//GET CONTROLLERS
+export const getPostByIdUserCtrl = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+        const page = req.query.page ? parseInt(req.query.page as string) : 1;
+
+        const posts = await postService.getPostsByUser(id, limit, page);
+
+        if (!posts) {
+            return responseFomat(res, null, "User id not found", false, 404);
+        }
+
+        // Transform posts based on their type
+        const postsDto = posts.map(post => {
+            if (post.type === 'poll') {
+                return plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
+            } else if (post.type === 'quote') {
+                return plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
+            } else {
+                return plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
+            }
+        });
+
+        return responseFomat(res, postsDto, "Post retrieved successfully");
+    } catch (error: any) {
+        next(error);
+    }
+};
