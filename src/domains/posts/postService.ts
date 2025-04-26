@@ -214,15 +214,6 @@ export const getFileKeys = async (postId: string): Promise<string[]> => {
     return result.length > 0 ? result[0].urlKeys : [];
 };
 
-export const getPostByUserId = async (userId: string, limit: number = 10, page: number = 1) => {
-    const posts = await PostModel.find({ creator_id: new mongoose.Types.ObjectId(userId) })
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit);
-
-    return posts.map(post => post.toObject());
-};
-
 export const getAllPosts = async () => {
     const posts = await PostModel.find().sort({ createdAt: -1 });
     return posts.map(post => post.toObject());

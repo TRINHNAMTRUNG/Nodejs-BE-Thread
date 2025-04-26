@@ -15,6 +15,7 @@ import {
     PaginationQueryRequestDTO
 } from "../domains/posts/postRequest.dto";
 import multer from "multer";
+import { requireUser } from "../middlewares/requireUser";
 const router = express.Router();
 
 const upload = multer();
@@ -26,7 +27,9 @@ const upload = multer();
 //     }
 //     return next(); // Bỏ qua multer nếu không phải multipart/form-data
 // };
-//Post routes
+
+// --- POST ROUTES ---
+// 
 // Create Normal - Poll - Quote Post
 router.post("/normals",
     upload.array("files"),
@@ -41,6 +44,7 @@ router.post("/quotes",
     validateBodyDto(CreateQuotePostRequestDTO),
     postController.createQuotePostCtrl
 );
+
 // Update Normal - Poll - Quote Post
 router.patch("/normals/:id",
     upload.array("files"),
@@ -58,11 +62,15 @@ router.patch("/quotes/:id",
     validateBodyDto(UpdateQuoteAndPollPostRequestDTO),
     postController.updateQuotePostCtrl
 );
+
 // Delete Post
 router.delete("/:id",
     validateParamDto(IdQueryRequestDTO),
     postController.deletePostCtrl
 );
+
+// --- VOTE ROUTES ---
+
 // Vote Post or Unvote Post
 router.post("/:id/votes",
     validateParamDto(IdQueryRequestDTO),
@@ -77,6 +85,8 @@ router.post("/:id/polls/votes",
     pollVoteController.voteAPollOptionCtrl
 )
 
+// --- GET ROUTES ---
+
 // Get post by keyword
 router.get("/search", validateQueryDto(PaginationQueryRequestDTO), postController.searchPostsCtrl);
 
@@ -87,7 +97,7 @@ router.get("/hashtags/:hashtag", validateQueryDto(PaginationQueryRequestDTO), po
 router.get("/user/:user_id", validateQueryDto(PaginationQueryRequestDTO), postController.getPostsByUserCtrl);
 
 // Get all posts
-router.get("/all", validateQueryDto(PaginationQueryRequestDTO), postController.getAllPostsCtrl);
+router.get("/all", requireUser, validateQueryDto(PaginationQueryRequestDTO), postController.getAllPostsCtrl);
 
 // Get post by id
 router.get("/:id", validateParamDto(IdQueryRequestDTO), postController.getPostByIdCtrl);
