@@ -21,6 +21,7 @@ class PollOption {
     voters!: Schema.Types.ObjectId[];
 
     @Expose()
+    @Transform(params => params.obj._id)
     _id!: string
 }
 

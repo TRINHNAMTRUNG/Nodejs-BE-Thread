@@ -100,6 +100,7 @@ router.get("/user/:user_id", validateQueryDto(PaginationQueryRequestDTO), postCo
 router.get("/:id", validateParamDto(IdQueryRequestDTO), postController.getPostByIdCtrl);
 
 router.get("/:id", postController.getPostByIdUserCtrl);
+
 router.get("/", postController.getAllPostsCtrl);
 
 export default router;
