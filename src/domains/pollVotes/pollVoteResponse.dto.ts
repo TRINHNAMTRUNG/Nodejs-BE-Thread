@@ -17,5 +17,8 @@ export class PollVoteDTO {
     post_id!: Schema.Types.ObjectId;
 
     @Expose()
-    created_at!: Date;
+    createdAt!: Date;
+
+    @Expose()
+    updatedAt!: Date;
 }

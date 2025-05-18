@@ -1,6 +1,6 @@
 import { Expose, Transform, Type } from "class-transformer";
 import { Schema } from "mongoose";
-
+import { PollVoteDTO } from "../pollVotes/pollVoteResponse.dto";
 class UserTag {
     @Expose()
     @Transform(params => params.obj.id)
@@ -99,4 +99,43 @@ export class QuotePostDTO extends PostDTO {
     @Expose()
     @Transform(params => params.obj.quoted_post_id)
     quoted_post_id!: Schema.Types.ObjectId;
+}
+
+//PAYLOADS POST KAFKA
+
+export class PostPayloadDTO extends PostDTO {
+    @Expose()
+    @Type(() => Poll)
+    poll?: Poll;
+
+    @Expose()
+    @Transform(params => params.obj.quoted_post_id)
+    quoted_post_id?: Schema.Types.ObjectId;
+
+    @Expose()
+    hashtagUpdate!: { name: string, type: string, id?: string }[];
+}
+
+
+export class VotePollPayloadDTO {
+    @Expose()
+    @Transform(params => params.obj._id)
+    _id!: Schema.Types.ObjectId;
+
+    @Expose()
+    @Type(() => Poll)
+    poll!: Poll;
+
+    @Expose()
+    @Type(() => PollVoteDTO)
+    dataPollVote!: PollVoteDTO
+}
+
+export class DeletePostPayloadDTO {
+    @Expose()
+    @Transform(params => params.obj._id)
+    _id!: Schema.Types.ObjectId;
+
+    @Expose()
+    hashtagUpdate!: { name: string, type: string, id?: string }[];
 }

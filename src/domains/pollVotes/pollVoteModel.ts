@@ -12,5 +12,6 @@ const PollVoteSchema = new Schema(
 
 PollVoteSchema.index({ poll_option_id: 1, user_id: 1 }, { unique: true });
 
-export const PollVoteModel = model("PollVote", PollVoteSchema);
+const PollVoteModel = model("PollVote", PollVoteSchema);
+export default PollVoteModel;
 

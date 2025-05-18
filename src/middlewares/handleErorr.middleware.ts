@@ -34,8 +34,5 @@ export const errorHandler = <ErrorDetailType>(err: AppError<ErrorDetailType>, re
     return responseFomat(res, null, message, false, statusCode, errorCode, details);
 };
 
-module.exports = {
-    errorConverter,
-    errorHandler,
-};
+
 // }

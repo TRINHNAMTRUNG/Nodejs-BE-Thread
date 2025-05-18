@@ -1,9 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import * as postService from "./postService";
 import { responseFomat } from "../../utils/responseFomat";
-import { PollDTO, PostDTO, QuotePostDTO } from "./postResponse.dto";
+import { DeletePostPayloadDTO, PollDTO, PostDTO, PostPayloadDTO, QuotePostDTO } from "./postResponse.dto";
 import { plainToInstance } from "class-transformer";
 import { CreatePollRequestDTO, CreatePostRequestDTO, CreateQuotePostRequestDTO, UpdatePostRequestDTO, UpdateQuoteAndPollPostRequestDTO } from "./postRequest.dto";
+import { PostPublisher } from "../../events/publishers/post.publisher";
+import { EventTypes } from "../../constants/eventTypes";
+import { UserInfo } from "../../interfaces";
 //POST CONTROLLERS
 
 export const getAllPostsCtrl = async (req: Request, res: Response, next: NextFunction) => {
@@ -51,28 +54,6 @@ export const getPostByIdCtrl = async (req: Request, res: Response, next: NextFun
     }
 };
 
-// export const getPostsByUserCtrl = async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         const { user_id } = req.params;
-//         const { page = 1, limit = 8 } = req.query;
-
-//         const posts = await postService.getPostsByUser(user_id, Number(page), Number(limit));
-//         // Transform posts based on their type
-//         const postDtos = posts.map(post => {
-//             if (post.type === 'poll') {
-//                 return plainToInstance(PollDTO, post, { excludeExtraneousValues: true });
-//             } else if (post.type === 'quote') {
-//                 return plainToInstance(QuotePostDTO, post, { excludeExtraneousValues: true });
-//             } else {
-//                 return plainToInstance(PostDTO, post, { excludeExtraneousValues: true });
-//             }
-//         });
-
-//         return responseFomat(res, postDtos, "Posts retrieved successfully");
-//     } catch (error: any) {
-//         next(error);
-//     }
-// };
 
 export const getPostsByHashtagCtrl = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -121,12 +102,22 @@ export const searchPostsCtrl = async (req: Request, res: Response, next: NextFun
 
 export const createPostCtrl = async (req: Request<{}, {}, CreatePostRequestDTO>, res: Response, next: NextFunction) => {
     try {
-        const post = req.body;
-
+        const dataPost = req.body;
+        const userInfo = req.user as UserInfo;
         const files = Array.isArray(req?.files) ? req.files : undefined;
-        const newPost = await postService.createPost(post, files);
+        const result = await postService.createPost(dataPost, files, userInfo);
+        console.log("Post created event published:", result);
+        // publish to kafka
 
-        const postDto = plainToInstance(PostDTO, newPost, { excludeExtraneousValues: true });
+        const dataPayload = { ...result.post, hashtagUpdate: result.hashtagUpdate }
+        const postMessageDto = plainToInstance(PostPayloadDTO, dataPayload, { excludeExtraneousValues: true });
+        console.log("postMessageDto created event published:", postMessageDto);
+        const publisher = new PostPublisher(EventTypes.POST_CREATED, userInfo);
+
+        publisher.publish(postMessageDto);
+
+        // response to client
+        const postDto = plainToInstance(PostDTO, result.post, { excludeExtraneousValues: true });
         return responseFomat(res, postDto, "Post created successfully");
     } catch (error: any) {
         next(error);
@@ -136,14 +127,20 @@ export const createPostCtrl = async (req: Request<{}, {}, CreatePostRequestDTO>,
 export const updatePostCtrl = async (req: Request<{ id: string }, {}, UpdatePostRequestDTO>, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
+        const userInfo = req.user as UserInfo;
         let updateData = req.body;
         const files = Array.isArray(req?.files) ? req.files : undefined;
 
-        const updatedPost = await postService.updatePost(id, updateData, files);
-        // console.log("updatedPost obj:", JSON.stringify(updatedPost, null, 2));
+        const result = await postService.updatePost(id, updateData, files, userInfo);
 
-        const postDto = plainToInstance(PostDTO, updatedPost, { excludeExtraneousValues: true });
-        // console.log("postDto: >>>", postDto);
+        // publish to kafka
+
+        const dataPayload = { ...result.post, hashtagUpdate: result.hashtagUpdate }
+        const postMessageDto = plainToInstance(PostPayloadDTO, dataPayload, { excludeExtraneousValues: true });
+        const publisher = new PostPublisher(EventTypes.POST_UPDATED, userInfo);
+        publisher.publish(postMessageDto);
+
+        const postDto = plainToInstance(PostDTO, result.post, { excludeExtraneousValues: true });
         return responseFomat(res, postDto, "Post updated successfully");
     } catch (error: any) {
         next(error);
@@ -153,12 +150,19 @@ export const updatePostCtrl = async (req: Request<{ id: string }, {}, UpdatePost
 export const deletePostCtrl = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
+        const userInfo = req.user as UserInfo;
         const fileKeys = await postService.getFileKeys(id);
-        const deletedPost = await postService.deletePost(id, fileKeys);
+        const result = await postService.deletePost(id, fileKeys, userInfo);
 
-        if (!deletedPost) {
+        if (!result.post) {
             return responseFomat(res, null, "Post not found", false, 404);
         }
+        // publish to kafka
+
+        const dataPayload = { ...result.post, hashtagUpdate: result.hashtagUpdate }
+        const postMessageDto = plainToInstance(DeletePostPayloadDTO, dataPayload, { excludeExtraneousValues: true });
+        const publisher = new PostPublisher(EventTypes.POST_DELETED, userInfo);
+        publisher.publish(postMessageDto);
 
         return responseFomat(res, null, "Post deleted successfully");
     } catch (error: any) {
@@ -170,9 +174,17 @@ export const deletePostCtrl = async (req: Request, res: Response, next: NextFunc
 export const createPollCtrl = async (req: Request<{}, {}, CreatePollRequestDTO>, res: Response, next: NextFunction) => {
     try {
         const poll = req.body;
-        const newPoll = await postService.createPoll(poll);
+        const userInfo = req.user as UserInfo;
+        const result = await postService.createPoll(poll, userInfo);
 
-        const pollDto = plainToInstance(PollDTO, newPoll, { excludeExtraneousValues: true });
+        // publish to kafka
+
+        const dataPayload = { ...result.post, hashtagUpdate: result.hashtagUpdate }
+        const postMessageDto = plainToInstance(PostPayloadDTO, dataPayload, { excludeExtraneousValues: true });
+        const publisher = new PostPublisher(EventTypes.POST_CREATED, userInfo);
+        publisher.publish(postMessageDto);
+
+        const pollDto = plainToInstance(PollDTO, result.post, { excludeExtraneousValues: true });
         return responseFomat(res, pollDto, "Poll created successfully");
     } catch (error: any) {
         next(error);
@@ -182,15 +194,19 @@ export const createPollCtrl = async (req: Request<{}, {}, CreatePollRequestDTO>,
 export const updatePollCtrl = async (req: Request<{ id: string }, {}, UpdateQuoteAndPollPostRequestDTO>, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        // const defaultFields = {
-        //     hashtags: [],
-        //     user_tags: []
-        // };
+        const userInfo = req.user as UserInfo;
         let updateData = req.body;
 
-        const updatedPoll = await postService.updatePoll(id, updateData);
+        const result = await postService.updatePoll(id, updateData, userInfo);
 
-        const pollDto = plainToInstance(PollDTO, updatedPoll, { excludeExtraneousValues: true });
+        // publish to kafka
+
+        const dataPayload = { ...result.post, hashtagUpdate: result.hashtagUpdate }
+        const postMessageDto = plainToInstance(PostPayloadDTO, dataPayload, { excludeExtraneousValues: true });
+        const publisher = new PostPublisher(EventTypes.POST_UPDATED, userInfo);
+        publisher.publish(postMessageDto);
+
+        const pollDto = plainToInstance(PollDTO, result.post, { excludeExtraneousValues: true });
         return responseFomat(res, pollDto, "Poll updated successfully");
     } catch (error: any) {
         next(error);
@@ -201,9 +217,16 @@ export const updatePollCtrl = async (req: Request<{ id: string }, {}, UpdateQuot
 export const createQuotePostCtrl = async (req: Request<{}, {}, CreateQuotePostRequestDTO>, res: Response, next: NextFunction) => {
     try {
         const quotePost = req.body;
-        const newQuotePost = await postService.createQuotePost(quotePost);
+        const userInfo = req.user as UserInfo;
+        const result = await postService.createQuotePost(quotePost, userInfo);
 
-        const quotePostDto = plainToInstance(QuotePostDTO, newQuotePost, { excludeExtraneousValues: true });
+        // publish to kafka
+        const dataPayload = { ...result.post, hashtagUpdate: result.hashtagUpdate }
+        const postMessageDto = plainToInstance(PostPayloadDTO, dataPayload, { excludeExtraneousValues: true });
+        const publisher = new PostPublisher(EventTypes.POST_CREATED, userInfo);
+        publisher.publish(postMessageDto);
+
+        const quotePostDto = plainToInstance(QuotePostDTO, result.post, { excludeExtraneousValues: true });
         return responseFomat(res, quotePostDto, "Quote post created successfully");
     } catch (error) {
         next(error);
@@ -213,15 +236,18 @@ export const createQuotePostCtrl = async (req: Request<{}, {}, CreateQuotePostRe
 export const updateQuotePostCtrl = async (req: Request<{ id: string }, {}, UpdateQuoteAndPollPostRequestDTO>, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        // const defaultFields = {
-        //     hashtags: [],
-        //     user_tags: []
-        // };
         let updateData = req.body;
+        const userInfo = req.user as UserInfo;
+        const result = await postService.updateQuotePost(id, updateData, userInfo);
 
-        const updatedQuotePost = await postService.updateQuotePost(id, updateData);
+        // publish to kafka
 
-        const quotePostDto = plainToInstance(QuotePostDTO, updatedQuotePost, { excludeExtraneousValues: true });
+        const dataPayload = { ...result.post, hashtagUpdate: result.hashtagUpdate }
+        const postMessageDto = plainToInstance(PostPayloadDTO, dataPayload, { excludeExtraneousValues: true });
+        const publisher = new PostPublisher(EventTypes.POST_UPDATED, userInfo);
+        publisher.publish(postMessageDto);
+
+        const quotePostDto = plainToInstance(QuotePostDTO, result.post, { excludeExtraneousValues: true });
         return responseFomat(res, quotePostDto, "Quote post updated successfully");
     } catch (error: any) {
         next(error);
@@ -255,8 +281,49 @@ export const getPostByIdUserCtrl = async (req: Request, res: Response, next: Nex
             }
         });
 
-        return responseFomat(res, postsDto, "Post retrieved successfully");
+        return responseFomat(res, postsDto, "Post retrieved successfully alo");
     } catch (error: any) {
         next(error);
+    }
+};
+
+export const getLikedPosts = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        const userInfo = req.user as UserInfo;
+        console.log("userInfo", userInfo);
+        const posts = await postService.getLikedPostsByUser(userInfo._id, +page, +limit);
+
+        return res.status(200).json({
+            message: "Lấy danh sách bài viết đã like thành công",
+            data: posts
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getCommentedPosts = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const userInfo = req.user as UserInfo;
+
+        const data = await postService.getCommentedPostsByUser(
+            userInfo._id,
+            page,
+            limit
+        );
+
+        return res.status(200).json({
+            message: "Lấy danh sách bài viết đã bình luận thành công",
+            data
+        });
+    } catch (err) {
+        next(err);
     }
 };

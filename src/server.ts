@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 //     console.log('Headers:', req.headers);
 //     next();
 // });
-app.use("/api", routes);
+app.use("/api/write", routes);
 
 // send back a 404 error for any unknow api request
 app.use((req: Request, res: Response, next: NextFunction) => {
