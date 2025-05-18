@@ -120,6 +120,25 @@ export const getCommentedPostsByUser = async (
     return posts;
 };
 
+export const getQuotedPostsByUser = async (
+    userId: string,
+    page = 1,
+    limit = 10
+) => {
+    const skip = (page - 1) * limit;
+
+    const posts = await PostModel.find({
+        type: "quote",
+        creator_id: userId,
+    })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+    return posts;
+};
+
 export const createPost = async (post: CreatePostRequestDTO, files: Express.Multer.File[] | undefined, userInfo: UserInfo) => {
     // console.log("LOGS SVC: ", post);
     const { hashtags = [] } = post;

@@ -96,6 +96,9 @@ router.post("/:id/polls/votes",
 
 // --- GET ROUTES ---
 
+// Get posts quoted by user
+router.get("/quoted", requireUser, postController.getQuotedPosts);
+
 // Get posts commented by user
 router.get("/commented", requireUser, postController.getCommentedPosts);
 

@@ -281,7 +281,7 @@ export const getPostByIdUserCtrl = async (req: Request, res: Response, next: Nex
             }
         });
 
-        return responseFomat(res, postsDto, "Post retrieved successfully alo");
+        return responseFomat(res, postsDto, "Post retrieved successfully");
     } catch (error: any) {
         next(error);
     }
@@ -295,7 +295,7 @@ export const getLikedPosts = async (req: Request, res: Response, next: NextFunct
         const posts = await postService.getLikedPostsByUser(userInfo._id, +page, +limit);
 
         return res.status(200).json({
-            message: "Lấy danh sách bài viết đã like thành công",
+            message: "Get list of successfully liked posts",
             data: posts
         });
     } catch (error) {
@@ -320,10 +320,36 @@ export const getCommentedPosts = async (
         );
 
         return res.status(200).json({
-            message: "Lấy danh sách bài viết đã bình luận thành công",
+            message: "Get list of successfully commented posts",
             data
         });
     } catch (err) {
         next(err);
+    }
+};
+
+
+export const getQuotedPosts = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const userInfo = req.user as UserInfo;
+
+        const data = await postService.getQuotedPostsByUser(
+            userInfo._id,
+            page,
+            limit
+        );
+
+        return res.status(200).json({
+            message: "Get list of successfully quoted posts",
+            data
+        });
+    } catch (error) {
+        next(error);
     }
 };
