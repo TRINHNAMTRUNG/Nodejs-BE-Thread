@@ -1,5 +1,3 @@
-
-
 import { NextFunction, Request, Response } from 'express';
 import * as pollVoteService from './pollVoteService';
 import { responseFomat } from '../../utils/responseFomat';
