@@ -120,8 +120,8 @@ export class QuotePostResDTO extends PostDTO {
     @Transform(({ obj }) => obj.quoted_post_id)
     quoted_post_id!: Schema.Types.ObjectId;
 
-    @Exclude()
-    creator_id!: Schema.Types.ObjectId;
+    // @Exclude()
+    // creator_id!: Schema.Types.ObjectId;
 
     @Expose()
     @Type(() => UserInfoDTO)
