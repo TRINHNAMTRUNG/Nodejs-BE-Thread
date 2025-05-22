@@ -7,7 +7,7 @@ import { VotePublisher } from "../../events/publishers/vote.publisher";
 import { UserInfo } from "../../interfaces/index";
 import { responseFomat } from "../../utils/responseFomat";
 import { VotePayloadDTO, VoteResponseDTO } from "./voteLikeResponse.dto";
-import { voteActionService } from "./voteService";
+import { getUserLikedPost, voteActionService } from "./voteService";
 
 
 
@@ -43,6 +43,16 @@ export const voteLikeACommentCtrl = async (req: Request, res: Response, next: Ne
 
         const voteDto = plainToInstance(VoteResponseDTO, result, { excludeExtraneousValues: true });
         return responseFomat(res, voteDto, "Comment voted successfully");
+    } catch (error: any) {
+        next(error);
+    }
+}
+
+export const getUserLikedPostCtrl = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const result = await getUserLikedPost(id);
+        return responseFomat(res, result, "User liked post retrieved successfully");
     } catch (error: any) {
         next(error);
     }

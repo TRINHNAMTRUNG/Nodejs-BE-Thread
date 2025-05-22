@@ -96,3 +96,11 @@ export const voteActionService = async (id: string, userId: string, target_type:
     console.log("result =>>>>>> ", result);
     return { ...result?.toObject(), vote_type };
 };
+
+export const getUserLikedPost = async (post_id: string) => {
+    const posts = await VoteModel.find(
+        { target_id: post_id, target_type: Target_type.POST },
+        { user_id: 1 }
+    ).lean();
+    return posts;
+};

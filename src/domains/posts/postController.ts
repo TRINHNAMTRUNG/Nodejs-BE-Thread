@@ -14,7 +14,6 @@ export const getAllPostsCtrl = async (req: Request, res: Response, next: NextFun
         const { page = 1, limit = 8 } = req.query;
 
         const posts = await postService.getRandomPosts(Number(page), Number(limit));
-
         // Transform posts based on their type
         const postDtos = posts.map(post => {
             if (post.type === 'poll') {

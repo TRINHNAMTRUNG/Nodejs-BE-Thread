@@ -133,4 +133,10 @@ router.get("/:id",
 
 router.get("/", postController.getAllPostsCtrl);
 
+// Get user like post by post_id(target_id)
+router.get("/liked/:id",
+    requireUser,
+    validateParamDto(IdQueryRequestDTO),
+    voteController.getUserLikedPostCtrl)
+
 export default router;
