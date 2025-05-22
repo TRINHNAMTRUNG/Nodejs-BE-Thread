@@ -24,7 +24,7 @@ export class AppError<ErrorDetailType = undefined> extends Error {
         Object.setPrototypeOf(this, new.target.prototype);
     }
 
-    static logic(message: string, statusCode: number, errorCode: ErrorCode | string): AppError<never> {
+    static logic(message: string, statusCode: number, errorCode: ErrorCode | string): AppError {
         return new AppError(message, statusCode, errorCode);
     }
 

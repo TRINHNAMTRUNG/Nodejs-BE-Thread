@@ -20,32 +20,42 @@ const coreValidateAny = (DtoClass: new () => any, typeValidate: TypeValidate) =>
             let dataSource: any;
             switch (typeValidate) {
                 case TypeValidate.VALIDATE_BODY:
-                    dataSource = req.body
+                    dataSource = req.body;
                     break;
                 case TypeValidate.VALIDATE_QUERY:
-                    dataSource = req.query
+                    dataSource = req.query;
                     break;
                 case TypeValidate.VALIDATE_PARAM:
-                    dataSource = req.params
+                    dataSource = req.params;
                     break;
                 default:
-                    throw new Error('Invalid validation type');
+                    throw new Error("Invalid validation type");
             }
 
-            if (!dataSource || typeof dataSource !== 'object') {
+            if (!dataSource || typeof dataSource !== "object") {
                 throw AppError.logic("Invalid request data", httpStatusCode.BAD_REQUEST, httpStatusCode["400_NAME"]);
             }
 
             const dtoInstance = plainToClass(DtoClass, dataSource, { enableImplicitConversion: true });
-            // console.log("LOGS VALIDATE: ", dtoInstance)
-            const errorsValidate = await validate(dtoInstance);
+            const errorsValidate = await validate(dtoInstance, { validationError: { target: false } });
 
             if (errorsValidate.length > 0) {
                 const details = errorsValidate.reduce((acc, error: ValidationError) => {
-                    acc[error.property] = Object.values(error.constraints || {});
+                    if (error.constraints) {
+                        acc[error.property] = Object.values(error.constraints);
+                    } else if (error.children && error.children.length) {
+                        const nestedErrors = checkNestedErrors(error);
+                        acc[error.property] = nestedErrors;
+                    }
                     return acc;
-                }, {} as Record<string, string[]>);
-                throw AppError.validation("Validation failed", httpStatusCode.BAD_REQUEST, ErrorCode.VALIDATION_FAILED, details);
+                }, {} as Record<string, any>);
+
+                throw AppError.validation(
+                    "Validation failed",
+                    httpStatusCode.BAD_REQUEST,
+                    ErrorCode.VALIDATION_FAILED,
+                    details
+                );
             }
 
             switch (typeValidate) {
@@ -61,158 +71,63 @@ const coreValidateAny = (DtoClass: new () => any, typeValidate: TypeValidate) =>
             }
             next();
         } catch (error: any) {
-            console.log('> An error occurred while validating request: ', error);
+            console.log("> An error occurred while validating request: ", error);
             next(error);
         }
-    }
-}
+    };
+};
 
 export const validateBodyDto = (DtoClass: new () => any) => {
     return coreValidateAny(DtoClass, TypeValidate.VALIDATE_BODY);
-}
+};
+
 export const validateParamDto = (DtoClass: new () => any) => {
     return coreValidateAny(DtoClass, TypeValidate.VALIDATE_PARAM);
-}
+};
+
 export const validateQueryDto = (DtoClass: new () => any) => {
     return coreValidateAny(DtoClass, TypeValidate.VALIDATE_QUERY);
-}
+};
 
-// export const validateBody = (schema: Joi.AnySchema, options: { allowUnknown?: boolean } = {}) => {
-//     return (req: Request, res: Response, next: NextFunction) => {
-//         // console.log("Kiem tra middle before: ", req.body)
-//         try {
-//             // If no body is provided when it's required, return error early
-//             if (Object.keys(req.body || {}).length === 0 && !options.allowUnknown) {
-//                 return responseFomat(
-//                     res,
-//                     null,
-//                     "Validation Error",
-//                     false,
-//                     400,
-//                     "Request body is required"
-//                 );
-//             }
+// Hàm xử lý lỗi nested cho cả object và array
+const checkNestedErrors = (error: ValidationError, index?: number): any => {
+    // Nếu là lỗi trực tiếp (có constraints)
+    if (error.constraints) {
+        return {
+            ...(index !== undefined && { index }),
+            errors: { [error.property]: Object.values(error.constraints) }
+        };
+    }
 
-//             const { error, value } = schema.validate(req.body, {
-//                 abortEarly: false,
-//                 stripUnknown: !options.allowUnknown,
-//                 convert: true
-//             });
+    // Nếu có children (nested errors)
+    if (error.children && error.children.length > 0) {
+        // Kiểm tra xem property có phải là array không
+        const isArray = Array.isArray(error.value);
 
-//             if (error) {
-//                 const errorMessages = error.details.map(err => {
-//                     console.log("Kiem tra joi: ", err.message)
-//                     const message = err.message.startsWith("Error:")
-//                         ? err.message
-//                         : `Error: ${err.message}`;
-//                     return message;
-//                 });
+        if (isArray) {
+            // Nếu là array, trả về mảng các lỗi với index
+            return error.children.map((child: ValidationError, childIndex: number) => {
+                if (child.constraints) {
+                    return {
+                        index: childIndex,
+                        errors: { [child.property]: Object.values(child.constraints) }
+                    };
+                }
+                return checkNestedErrors(child, childIndex);
+            });
+        } else {
+            // Nếu là object, trả về object chứa các lỗi
+            const nestedErrors: Record<string, any> = {};
+            error.children.forEach((child: ValidationError) => {
+                if (child.constraints) {
+                    nestedErrors[child.property] = Object.values(child.constraints);
+                } else if (child.children && child.children.length > 0) {
+                    nestedErrors[child.property] = checkNestedErrors(child);
+                }
+            });
+            return nestedErrors;
+        }
+    }
 
-//                 return responseFomat(
-//                     res,
-//                     null,
-//                     "Validation Error",
-//                     false,
-//                     400,
-//                     errorMessages
-//                 );
-//             }
-//             req.body = value;
-//             console.log("Kiem tra middle after: ", req.body)
-//             next();
-//         } catch (err) {
-//             console.error("Validation middleware error:", err);
-//             return responseFomat(
-//                 res,
-//                 null,
-//                 "Internal Server Error",
-//                 false,
-//                 500,
-//                 "An error occurred while validating request"
-//             );
-//         }
-//     };
-// };
-
-// /**
-//  * Middleware to validate query parameters against a Joi schema
-//  * @param schema Joi validation schema
-//  */
-// export const validateQueryParams = (schema: ObjectSchema) => {
-//     return (req: Request, res: Response, next: NextFunction) => {
-//         try {
-//             const { error, value } = schema.validate(req.query, {
-//                 abortEarly: false,
-//                 convert: true,
-//                 allowUnknown: false
-//             });
-
-//             if (error) {
-//                 const errorMessages = error.details.map(err => `Error: ${err.message}`);
-//                 return responseFomat(
-//                     res,
-//                     null,
-//                     "Invalid Query Parameters",
-//                     false,
-//                     400,
-//                     errorMessages
-//                 );
-//             }
-
-//             // Replace req.query with validated values
-//             req.query = value;
-//             next();
-//         } catch (err) {
-//             console.error("Query validation middleware error:", err);
-//             return responseFomat(
-//                 res,
-//                 null,
-//                 "Internal Server Error",
-//                 false,
-//                 500,
-//                 "An error occurred while validating query parameters"
-//             );
-//         }
-//     };
-// };
-
-// /**
-//  * Middleware to validate URL parameters against a Joi schema
-//  * @param schema Joi validation schema
-//  */
-// export const validateParams = (schema: ObjectSchema) => {
-//     return (req: Request, res: Response, next: NextFunction) => {
-//         try {
-//             const { error, value } = schema.validate(req.params, {
-//                 abortEarly: false,
-//                 convert: true
-//             });
-
-//             if (error) {
-//                 const errorMessages = error.details.map(err => `Error: ${err.message}`);
-//                 return responseFomat(
-//                     res,
-//                     null,
-//                     "Invalid URL Parameters",
-//                     false,
-//                     400,
-//                     errorMessages
-//                 );
-//             }
-
-//             // Replace req.params with validated values
-//             req.params = value;
-//             next();
-//         } catch (err) {
-//             console.error("Params validation middleware error:", err);
-//             return responseFomat(
-//                 res,
-//                 null,
-//                 "Internal Server Error",
-//                 false,
-//                 500,
-//                 "An error occurred while validating URL parameters"
-//             );
-//         }
-//     };
-// };
+    return {};
+};

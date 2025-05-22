@@ -7,10 +7,6 @@ export class CreateCommentRequestDTO {
     post_id!: string;
 
     @Expose()
-    @IsMongoId()
-    user_id!: string;
-
-    @Expose()
     @IsString()
     @MinLength(1, { message: 'Comment must not be empty' })
     content!: string;
@@ -24,6 +20,15 @@ export class CreateCommentRequestDTO {
     @IsOptional()
     @IsMongoId()
     reply_to_user_id?: string;
+}
+
+export class updateCommentRequestDTO {
+
+    @Expose()
+    @IsString()
+    @MinLength(1, { message: 'Comment must not be empty' })
+    content!: string;
+
 }
 
 

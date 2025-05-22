@@ -67,11 +67,6 @@ export class CreatePostRequestDTO {
 
     @Expose()
     @IsString()
-    @Length(24, 24, { message: 'creator_id must be exactly 24 characters' })
-    creator_id!: string;
-
-    @Expose()
-    @IsString()
     @MinLength(1, { message: 'Post content must have at least 1 character' })
     content!: string;
 
@@ -83,7 +78,7 @@ export class CreatePostRequestDTO {
 
     @Expose()
     @IsArray()
-    @ArrayMinSize(1, { message: 'user_tags must contain at least one tag' })
+    // @ArrayMinSize(1, { message: 'user_tags must contain at least one tag' })
     @ValidateNested({ each: true })
     @Type(() => UserTagRequest)
     @IsOptional()
@@ -92,7 +87,7 @@ export class CreatePostRequestDTO {
 
     @Expose()
     @IsArray()
-    @ArrayMinSize(1, { message: 'Hashtags must contain at least one tag' })
+    // @ArrayMinSize(1, { message: 'Hashtags must contain at least one tag' })
     @IsString({ each: true, message: 'Each hashtag must be a string' })
     @IsOptional()
     // @Transform(({ value }) => value === undefined ! [] : value)
@@ -130,17 +125,13 @@ export class UpdatePostRequestDTO {
 
     @Expose()
     @IsArray()
-    @ArrayMinSize(1, { message: 'user_tags must contain at least one tag' })
     @ValidateNested({ each: true })
     @Type(() => UserTagRequest)
-    @IsOptional()
     user_tags!: UserTagRequest[];
 
     @Expose()
     @IsArray()
-    @ArrayMinSize(1, { message: 'Hashtags must contain at least one tag' })
     @IsString({ each: true, message: 'Each hashtag must be a string' })
-    @IsOptional()
     hashtags!: string[];
 
     @Expose()
@@ -172,17 +163,13 @@ export class UpdateQuoteAndPollPostRequestDTO {
 
     @Expose()
     @IsArray()
-    @ArrayMinSize(1, { message: 'user_tags must contain at least one tag' })
     @ValidateNested({ each: true })
     @Type(() => UserTagRequest)
-    @IsOptional()
     user_tags!: UserTagRequest[];
 
     @Expose()
     @IsArray()
-    @ArrayMinSize(1, { message: 'Hashtags must contain at least one tag' })
     @IsString({ each: true, message: 'Each hashtag must be a string' })
-    @IsOptional()
     hashtags!: string[];
 }
 
@@ -192,11 +179,6 @@ export class VotePollOptionRequestDTO {
     @IsString()
     @Length(24, 24, { message: 'poll_option_id must be exactly 24 characters' })
     poll_option_id!: string;
-
-    @Expose()
-    @IsString()
-    @Length(24, 24, { message: 'user_id must be exactly 24 characters' })
-    user_id!: string;
 }
 
 // Request DTO cho Query
@@ -205,6 +187,18 @@ export class IdQueryRequestDTO {
     @IsString()
     @Length(24, 24, { message: 'id must be exactly 24 characters' })
     id!: string;
+}
+
+export class IdQueryUserVotedRequestDTO {
+    @Expose()
+    @IsString()
+    @Length(24, 24, { message: 'id must be exactly 24 characters' })
+    post_id!: string;
+
+    @Expose()
+    @IsString()
+    @Length(24, 24, { message: 'id must be exactly 24 characters' })
+    poll_option_id!: string;
 }
 
 export class PaginationQueryRequestDTO {

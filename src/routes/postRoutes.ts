@@ -12,9 +12,11 @@ import {
     UpdateQuoteAndPollPostRequestDTO,
     VotePollOptionRequestDTO,
     VoteAPost,
-    PaginationQueryRequestDTO
+    PaginationQueryRequestDTO,
+    IdQueryUserVotedRequestDTO
 } from "../domains/posts/postRequest.dto";
 import multer from "multer";
+import { requireUser } from "../middlewares/requireUser";
 const router = express.Router();
 
 const upload = multer();
@@ -26,56 +28,82 @@ const upload = multer();
 //     }
 //     return next(); // Bỏ qua multer nếu không phải multipart/form-data
 // };
-//Post routes
+
+// --- POST ROUTES ---
+// 
 // Create Normal - Poll - Quote Post
 router.post("/normals",
+    requireUser,
     upload.array("files"),
     validateBodyDto(CreatePostRequestDTO),
     postController.createPostCtrl
 );
 router.post("/polls",
+    requireUser,
     validateBodyDto(CreatePollRequestDTO),
     postController.createPollCtrl
 );
 router.post("/quotes",
+    requireUser,
     validateBodyDto(CreateQuotePostRequestDTO),
     postController.createQuotePostCtrl
 );
+
 // Update Normal - Poll - Quote Post
 router.patch("/normals/:id",
+    requireUser,
     upload.array("files"),
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdatePostRequestDTO),
     postController.updatePostCtrl
 );
 router.patch("/polls/:id",
+    requireUser,
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdateQuoteAndPollPostRequestDTO),
     postController.updatePollCtrl
 );
 router.patch("/quotes/:id",
+    requireUser,
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(UpdateQuoteAndPollPostRequestDTO),
     postController.updateQuotePostCtrl
 );
+
 // Delete Post
 router.delete("/:id",
+    requireUser,
     validateParamDto(IdQueryRequestDTO),
     postController.deletePostCtrl
 );
+
+// --- VOTE ROUTES ---
+
 // Vote Post or Unvote Post
 router.post("/:id/votes",
+    requireUser,
     validateParamDto(IdQueryRequestDTO),
-    validateBodyDto(VoteAPost),
-    voteController.voteAPostCtrl
+    voteController.voteLikeAPostCtrl
 );
 
 // Vote A Poll Option
 router.post("/:id/polls/votes",
+    requireUser,
     validateParamDto(IdQueryRequestDTO),
     validateBodyDto(VotePollOptionRequestDTO),
     pollVoteController.voteAPollOptionCtrl
 )
+
+// --- GET ROUTES ---
+
+// Get posts quoted by user
+router.get("/quoted", requireUser, postController.getQuotedPosts);
+
+// Get posts commented by user
+router.get("/commented", requireUser, postController.getCommentedPosts);
+
+// Get posts liked by user
+router.get("/liked", requireUser, postController.getLikedPosts);
 
 // Get post by keyword
 router.get("/search", validateQueryDto(PaginationQueryRequestDTO), postController.searchPostsCtrl);
@@ -84,14 +112,31 @@ router.get("/search", validateQueryDto(PaginationQueryRequestDTO), postControlle
 router.get("/hashtags/:hashtag", validateQueryDto(PaginationQueryRequestDTO), postController.getPostsByHashtagCtrl);
 
 // Get post by id user
-router.get("/user/:user_id", validateQueryDto(PaginationQueryRequestDTO), postController.getPostsByUserCtrl);
+router.get("/user/:id",
+    validateParamDto(IdQueryRequestDTO),
+    validateQueryDto(PaginationQueryRequestDTO),
+    postController.getPostByIdUserCtrl
+);
 
-// Get all posts
-router.get("/all", validateQueryDto(PaginationQueryRequestDTO), postController.getAllPostsCtrl);
+// Xem danh sách user đã vote cho 1 poll option
+router.get(
+    "/:post_id/polls/:poll_option_id/votes",
+    validateParamDto(IdQueryUserVotedRequestDTO),
+    pollVoteController.getUsersVotedPollOptionCtrl
+);
 
-// Get post by id
-router.get("/:id", validateParamDto(IdQueryRequestDTO), postController.getPostByIdCtrl);
+// Get post by id post
+router.get("/:id",
+    validateParamDto(IdQueryRequestDTO),
+    postController.getPostByIdCtrl
+);
 
+router.get("/", postController.getAllPostsCtrl);
 
+// Get user like post by post_id(target_id)
+router.get("/liked/:id",
+    requireUser,
+    validateParamDto(IdQueryRequestDTO),
+    voteController.getUserLikedPostCtrl)
 
 export default router;

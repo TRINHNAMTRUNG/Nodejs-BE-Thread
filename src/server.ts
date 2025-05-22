@@ -6,10 +6,15 @@ import { Request, Response } from "express";
 import { AppError } from "./utils/AppError";
 import httpStatus from "http-status";
 import { errorConverter, errorHandler } from "./middlewares/handleErorr.middleware";
-// import cors from "cors";
+import cors from "cors";
+
 dotenv.config();
 
 const app = express();
+
+// enable cors
+app.use(cors());
+
 
 // parse json request body
 app.use(express.json());
@@ -23,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 //     console.log('Headers:', req.headers);
 //     next();
 // });
-app.use("/api", routes);
+app.use("/api/write", routes);
 
 // send back a 404 error for any unknow api request
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -35,6 +40,7 @@ app.use(errorConverter);
 
 // handle error
 app.use(errorHandler);
+
 
 //----Test routes
 // import multer from "multer";

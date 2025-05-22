@@ -1,0 +1,1 @@
+// this is mockup data for the events consumer
