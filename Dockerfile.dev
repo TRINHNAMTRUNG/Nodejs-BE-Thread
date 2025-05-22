@@ -1,0 +1,28 @@
+FROM node:18-alpine
+
+# Cài đặt các công cụ cần thiết cho build (nếu cần module native)
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+# Copy package.json và package-lock.json (nếu có)
+COPY package*.json ./
+
+# Cài đặt dependencies, bao gồm devDependencies
+RUN npm install
+
+# Sao chép mã nguồn (chỉ src và các file cần thiết)
+COPY tsconfig.json ./
+COPY src/ ./src/
+COPY nodemon.json ./
+
+# Expose cổng 8090
+EXPOSE 8090
+
+# Cấu hình polling cho nodemon
+ENV CHOKIDAR_USEPOLLING=true
+ENV CHOKIDAR_INTERVAL=1000
+
+# Chạy ứng dụng bằng lệnh start trong package.json
+# CMD ["npm", "nodemon", "--exec", "ts-node", "src/index.ts"]
+CMD ["npm", "start"]

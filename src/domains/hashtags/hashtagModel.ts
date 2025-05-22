@@ -4,7 +4,7 @@ import mongoose, { Schema, model } from "mongoose";
 const hashtagSchema = new Schema(
     {
         name: { type: String, required: true },
-        post_count: { type: Number, default: 0 }
+        post_count: { type: Number, default: 1 }
     }, { timestamps: true, collection: "hashtags" }
 );
 

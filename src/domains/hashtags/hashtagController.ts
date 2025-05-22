@@ -5,15 +5,18 @@ import { queryHashtagReq } from "../../interfaces/index";
 import { plainToInstance } from "class-transformer";
 import { HashtagRes } from "./hashtagResponse.dto";
 
-export const recommendHashtag = async (req: Request<{}, any, any, queryHashtagReq>, res: Response, next: NextFunction) => {
-    try {
-        const { limit, query } = req.query;
-        const hashtags = await hashtagService.getTrendingHashtags(Number(limit), query);
 
-        const hashtagsDto = plainToInstance(HashtagRes, hashtags, { excludeExtraneousValues: true });
+export const recommendHashtag = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const query = req.query.query?.toString() || "";
+        const hashtags = await hashtagService.getTrendingHashtags(5, query); // Giới hạn cố định 5
+
+        const hashtagsDto = plainToInstance(HashtagRes, hashtags, {
+            excludeExtraneousValues: true
+        });
 
         return responseFomat(res, hashtagsDto, "Hashtag recommend successfully");
     } catch (error: any) {
         next(error);
     }
-}
+};

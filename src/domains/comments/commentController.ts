@@ -1,14 +1,77 @@
 import { Request, Response, NextFunction } from "express";
 import * as commentService from "./commentService";
 import { plainToInstance } from "class-transformer";
-import { CommentResDTO, CommentWithPreviewDTO } from "./commentResponse.dto";
+import { CommentPayloadDTO, CommentResDTO, CommentWithPreviewDTO } from "./commentResponse.dto";
 import { responseFomat } from "../../utils/responseFomat";
+import { CommentPublisher } from "../../events/publishers/comment.publisher";
+import { EventTypes } from "../../constants/eventTypes";
+import { UserInfo } from "../../interfaces";
+
+
+export const getEditHistoriesByCommentId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { comment_id } = req.params;
+
+        const histories = await commentService.getHistoriesByCommentId(comment_id);
+
+        return responseFomat(res, histories, "Get comment edit history successfully");
+    } catch (error) {
+        next(error);
+    }
+};
 
 export const createComment = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const newComment = await commentService.createComment(req.body);
-        const response = plainToInstance(CommentResDTO, newComment, { excludeExtraneousValues: true });
+        const userInfo = req.user as UserInfo;
+        console.log("userInfo", userInfo);
+        const result = await commentService.createComment(req.body, userInfo);
+
+        // publish to kafka
+
+        const commentMessageDto = plainToInstance(CommentPayloadDTO, result, { excludeExtraneousValues: true });
+        const publisher = new CommentPublisher(EventTypes.COMMENT_CREATED, userInfo);
+        publisher.publish(commentMessageDto);
+
+        const response = plainToInstance(CommentResDTO, result, { excludeExtraneousValues: true });
         return responseFomat(res, response, "Comment created successfully");
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userInfo = req.user as UserInfo;
+        console.log("userInfo", userInfo);
+        const result = await commentService.updateComment(id, req.body, userInfo);
+
+        // publish to kafka
+
+        const commentMessageDto = plainToInstance(CommentPayloadDTO, result, { excludeExtraneousValues: true });
+        const publisher = new CommentPublisher(EventTypes.COMMENT_UPDATED, userInfo);
+        publisher.publish(commentMessageDto);
+
+        const response = plainToInstance(CommentResDTO, result, { excludeExtraneousValues: true });
+        return responseFomat(res, response, "Comment updated successfully");
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userInfo = req.user as UserInfo;
+        const result = await commentService.deleteComment(id, userInfo);
+
+        // publish to kafka
+
+        const commentMessageDto = plainToInstance(CommentPayloadDTO, result, { excludeExtraneousValues: true });
+        const publisher = new CommentPublisher(EventTypes.COMMENT_DELETED, userInfo);
+        publisher.publish(commentMessageDto);
+
+        return responseFomat(res, null, "Comment deleted successfully");
     } catch (error) {
         next(error);
     }

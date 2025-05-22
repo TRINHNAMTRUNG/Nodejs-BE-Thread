@@ -5,6 +5,6 @@ import { PaginationQueryRequestDTO } from "../domains/posts/postRequest.dto";
 
 const router = express.Router();
 
-router.get("/", validateParamDto(PaginationQueryRequestDTO), hashtagController.recommendHashtag);
+router.get("/recommend", hashtagController.recommendHashtag);
 
 export default router;
