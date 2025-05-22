@@ -1,4 +1,4 @@
-import { Expose, Transform, Type } from "class-transformer";
+import { Exclude, Expose, Transform, Type } from "class-transformer";
 import { Schema } from "mongoose";
 import { PollVoteDTO } from "../pollVotes/pollVoteResponse.dto";
 class UserTag {
@@ -100,6 +100,34 @@ export class QuotePostDTO extends PostDTO {
     @Transform(params => params.obj.quoted_post_id)
     quoted_post_id!: Schema.Types.ObjectId;
 }
+
+export class UserInfoDTO {
+    @Expose()
+    @Transform(params => params.obj._id)
+    _id!: string;
+
+    @Expose()
+    fullname!: string;
+
+    @Expose()
+    avatar!: string;
+
+    @Expose()
+    isActive!: boolean;
+}
+export class QuotePostResDTO extends PostDTO {
+    @Expose()
+    @Transform(({ obj }) => obj.quoted_post_id)
+    quoted_post_id!: Schema.Types.ObjectId;
+
+    @Exclude()
+    creator_id!: Schema.Types.ObjectId;
+
+    @Expose()
+    @Type(() => UserInfoDTO)
+    creator!: UserInfoDTO;
+}
+
 
 //PAYLOADS POST KAFKA
 

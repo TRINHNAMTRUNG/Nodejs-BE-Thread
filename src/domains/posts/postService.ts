@@ -9,6 +9,7 @@ import { NewFile, Urls, UserInfo } from "../../interfaces";
 import httpStatusCode from "http-status";
 import { VoteModel } from "../votes/voteModel";
 import { CommentModel } from "../comments/commentModel";
+import axios from "axios";
 
 const pushManyObjectS3Svc = async (files: Express.Multer.File[] | undefined): Promise<Urls[]> => {
     if (!files || files.length === 0) {
@@ -127,17 +128,70 @@ export const getQuotedPostsByUser = async (
 ) => {
     const skip = (page - 1) * limit;
 
-    const posts = await PostModel.find({
+    // 1. Lấy danh sách bài quote của user, populate quoted_post_id
+    const quotePosts = await PostModel.find({
         type: "quote",
         creator_id: userId,
     })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
+        .populate("quoted_post_id") // lấy luôn bài gốc
         .lean();
 
-    return posts;
+    if (quotePosts.length === 0) return [];
+
+    // 2. Lấy danh sách user gốc từ các bài gốc
+    const originalUserIds = quotePosts
+        .map(post => (post.quoted_post_id as any)?.creator_id)
+        .filter(Boolean)
+        .map(id => id.toString());
+    console.log("originalUserIds", originalUserIds);
+
+    // 3. Lấy thông tin user gốc từ user service
+    const originalUsers = await getUsersByIds(originalUserIds);
+    console.log("originalUsers", originalUsers);
+    // 4. Map user id => user info
+    const originalUserMap = new Map(
+        originalUsers.map((u: any) => [u.id, u])
+    );
+
+    // 5. Chuẩn hóa kết quả trả về cho client
+    return quotePosts.map(quote => {
+        const originalPost = (quote.quoted_post_id as any);
+        let originalUser = null;
+        if (originalPost && originalPost.creator_id) {
+            const originalUserIdStr = originalPost.creator_id.toString();
+            originalUser = originalUserMap.get(originalUserIdStr) || null;
+        }
+        return {
+            ...quote,
+            originalPost: originalPost
+                ? { ...originalPost, originalUser }
+                : null,
+            quoted_post_id: undefined // loại bỏ trường này khỏi kết quả trả về
+        };
+    }).map(({ quoted_post_id, ...rest }) => rest); // loại bỏ quoted_post_id
 };
+
+export const getUsersByIds = async (userIds: string[]) => {
+    try {
+        const response = await axios.post('http://user-service:3000/api/users/list', {
+            userIds,
+        });
+
+        if (response.data && response.data.success) {
+            return response.data.data; // danh sách user
+        } else {
+            console.error("Failed to fetch users:", response.data.message);
+            return [];
+        }
+    } catch (error: any) {
+        console.error("Error fetching users:", error.message || error);
+        return [];
+    }
+};
+
 
 export const createPost = async (post: CreatePostRequestDTO, files: Express.Multer.File[] | undefined, userInfo: UserInfo) => {
     // console.log("LOGS SVC: ", post);
